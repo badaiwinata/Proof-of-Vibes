@@ -12,12 +12,14 @@ interface CreationContextType {
   photos: string[];
   selectedPhotos: string[];
   templateSelection: TemplateSelection;
+  editionCount: number;
   mintedNfts: Nft[];
   addPhoto: (photoData: string) => void;
   removePhoto: (photoData: string) => void;
   selectPhoto: (photoData: string) => void;
   unselectPhoto: (photoData: string) => void;
   setTemplateSelection: (selection: TemplateSelection) => void;
+  setEditionCount: (count: number) => void;
   setMintedNfts: (nfts: Nft[]) => void;
   resetCreationState: () => void;
 }
@@ -37,6 +39,7 @@ export const CreationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [photos, setPhotos] = useState<string[]>([]);
   const [selectedPhotos, setSelectedPhotos] = useState<string[]>([]);
   const [templateSelection, setTemplateSelection] = useState<TemplateSelection>(defaultTemplateSelection);
+  const [editionCount, setEditionCount] = useState<number>(3); // Default to 3 editions
   const [mintedNfts, setMintedNfts] = useState<Nft[]>([]);
 
   // Add a new photo
@@ -66,6 +69,7 @@ export const CreationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setPhotos([]);
     setSelectedPhotos([]);
     setTemplateSelection(defaultTemplateSelection);
+    setEditionCount(3); // Reset to default
     setMintedNfts([]);
   }, []);
 
@@ -73,12 +77,14 @@ export const CreationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     photos,
     selectedPhotos,
     templateSelection,
+    editionCount,
     mintedNfts,
     addPhoto,
     removePhoto,
     selectPhoto,
     unselectPhoto,
     setTemplateSelection,
+    setEditionCount,
     setMintedNfts,
     resetCreationState
   };

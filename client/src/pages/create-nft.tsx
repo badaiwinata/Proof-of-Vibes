@@ -6,6 +6,7 @@ import ProgressIndicator from '../components/CreationFlow/ProgressIndicator';
 import TakePhotos from '../components/CreationFlow/TakePhotos';
 import SelectPhotos from '../components/CreationFlow/SelectPhotos';
 import ChooseTemplate from '../components/CreationFlow/ChooseTemplate';
+import EditionSelection from '../components/CreationFlow/EditionSelection';
 import MintNFTs from '../components/CreationFlow/MintNFTs';
 import ClaimNFTs from '../components/CreationFlow/ClaimNFTs';
 import { useCreationContext } from '../context/CreationContext';
@@ -15,8 +16,15 @@ type Step = 'take-photos' | 'select-photos' | 'choose-template' | 'mint-nfts' | 
 
 export default function CreateNFT() {
   const [currentStep, setCurrentStep] = useState<Step>('take-photos');
+  const [showEditionSelection, setShowEditionSelection] = useState(false);
   const [, navigate] = useLocation();
-  const { resetCreationState, selectedPhotos, photos } = useCreationContext();
+  const { 
+    resetCreationState, 
+    selectedPhotos, 
+    photos, 
+    setEditionCount, 
+    editionCount 
+  } = useCreationContext();
   const { toast } = useToast();
 
   // Reset creation state when component unmounts
@@ -63,8 +71,19 @@ export default function CreateNFT() {
           
           {/* Debug info - currentStep value */}
           <div className="fixed top-2 right-2 bg-black/50 text-xs text-white px-2 py-1 rounded z-50">
-            Current step: {currentStep} | Photos: {photos.length} | Selected: {selectedPhotos.length}
+            Current step: {currentStep} | Photos: {photos.length} | Selected: {selectedPhotos.length} | Editions: {editionCount}
           </div>
+          
+          {/* Edition Selection Popup */}
+          <EditionSelection 
+            isOpen={showEditionSelection}
+            onCancel={() => setShowEditionSelection(false)}
+            onConfirm={(count) => {
+              setEditionCount(count);
+              setShowEditionSelection(false);
+              handleNext('mint-nfts');
+            }}
+          />
           
           {currentStep === 'take-photos' && (
             <TakePhotos 
