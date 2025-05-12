@@ -7,15 +7,18 @@ import NFTCard from '../components/Gallery/NFTCard';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 import type { Nft } from '@shared/schema';
 
 export default function Gallery() {
   const [, navigate] = useLocation();
   const [sortBy, setSortBy] = useState('latest');
   
-  const { data, isLoading, error } = useQuery<{ nfts: Nft[] }>({
+  const { data, isLoading, error, refetch } = useQuery<{ nfts: Nft[] }>({
     queryKey: ['/api/nfts'],
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 10000, // Only consider data stale after 10 seconds
   });
 
   const handleCreateClick = () => {
@@ -51,7 +54,18 @@ export default function Gallery() {
       <main>
         <div className="mb-12">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="font-heading text-2xl font-bold">Event Memories</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="font-heading text-2xl font-bold">Event Memories</h2>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-white/70 hover:text-white hover:bg-white/10 rounded-full h-8 w-8 p-0"
+                onClick={() => refetch()}
+                title="Refresh gallery"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
             <div className="flex items-center space-x-2 text-sm">
               <span>Sort by:</span>
               <Select value={sortBy} onValueChange={setSortBy}>
@@ -84,7 +98,7 @@ export default function Gallery() {
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-destructive mb-4">Failed to load NFTs. Please try again.</p>
-              <Button onClick={() => window.location.reload()}>Retry</Button>
+              <Button onClick={() => refetch()}>Retry</Button>
             </div>
           ) : (
             <>

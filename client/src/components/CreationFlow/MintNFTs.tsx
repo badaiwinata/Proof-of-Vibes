@@ -4,7 +4,7 @@ import { useCreationContext } from '@/context/CreationContext';
 import { useSolana } from '@/hooks/useSolana';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { LoaderPinwheel, Eye, Sparkles, CheckCircle, Award, Scroll } from 'lucide-react';
 import { Link } from 'wouter';
 import NFTPreviewModal from '@/components/NFTPreviewModal';
@@ -66,6 +66,10 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         // Make sure all photos are marked as minted
         const indices = Array.from({ length: selectedPhotos.length }, (_, i) => i);
         setMintedPhotos(indices);
+        
+        // IMPORTANT: Invalidate the NFT query cache so gallery will refresh with new NFTs
+        queryClient.invalidateQueries({ queryKey: ['/api/nfts'] });
+        console.log("Invalidated NFT cache to ensure gallery updates");
         
         // Show success toast
         toast({
@@ -193,7 +197,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       if (progress >= 95) {
         clearInterval(interval);
         
-        // After 3 seconds at 98%, force completion to prevent getting stuck
+        // After 5 seconds at 98%, force completion to prevent getting stuck
         setTimeout(() => {
           if (mintProgress < 100) {
             console.log("Forcing completion after timeout");
@@ -204,6 +208,10 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             const allIndices = Array.from({ length: photoCount }, (_, i) => i);
             setMintedPhotos(allIndices);
             
+            // Force invalidate the NFT cache to ensure gallery refreshes
+            queryClient.invalidateQueries({ queryKey: ['/api/nfts'] });
+            console.log("Fallback mechanism: Invalidated NFT cache to ensure gallery updates");
+            
             // If we have minted NFTs from a previous attempt, use those
             // Otherwise proceed to next step anyway
             if (mintedNfts && mintedNfts.length > 0) {
@@ -211,6 +219,10 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             } else {
               console.log("No minted NFTs available, proceeding anyway");
               // This is a fallback that should rarely happen
+              
+              // Attempt a final refetch before proceeding to next step
+              queryClient.refetchQueries({ queryKey: ['/api/nfts'] });
+              
               onNext();
             }
           }
