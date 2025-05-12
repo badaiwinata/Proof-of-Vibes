@@ -15,16 +15,10 @@ interface ClaimNFTsProps {
   onFinish: () => void;
 }
 
-// Pre-defined copy count options
-const COPY_OPTIONS = [1, 2, 4, 6, 10];
-
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const { mintedNfts, editionCount } = useCreationContext();
   const [email, setEmail] = useState<string>('');
   const [emailError, setEmailError] = useState<string | undefined>();
-  const [copyCount, setCopyCount] = useState<number>(1);
-  const [customCopyCount, setCustomCopyCount] = useState<string>('');
-  const [showCustomCount, setShowCustomCount] = useState<boolean>(false);
   const [emailSent, setEmailSent] = useState<boolean>(false);
   const [emailConfirmation, setEmailConfirmation] = useState<string>('');
   const [previewNft, setPreviewNft] = useState<number | null>(null);
@@ -41,12 +35,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       // For photobooth situation where email might be skipped
       const recipients = email ? [{ name: '', email }] : [];
       
-      console.log("NFT IDs to claim:", nftIdsToSend, "Copy count:", copyCount, "Email:", email);
+      console.log("NFT IDs to claim:", nftIdsToSend, "Email:", email);
       
       const response = await apiRequest('POST', '/api/send-claim-email', { 
         nftIds: nftIdsToSend,
-        recipients,
-        copyCount: copyCount // Pass the copy count to create multiple NFTs
+        recipients
+        // No need for copyCount anymore as editions are already created
       });
       
       const data = await response.json();
@@ -62,20 +56,20 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
         
         toast({
           title: "Success!",
-          description: `Your ${copyCount} Proof of Vibes ${copyCount > 1 ? 'copies have' : 'copy has'} been prepared${email ? ` and sent to ${email}` : ''}.`,
+          description: `Your Proof of Vibes ${editionCount > 1 ? 'editions have' : 'edition has'} been sent to ${email}.`,
         });
       } else {
         toast({
           title: "Success!",
-          description: `Your ${copyCount} Proof of Vibes ${copyCount > 1 ? 'copies have' : 'copy has'} been prepared. Scan the QR code to claim.`,
+          description: `Your Proof of Vibes ${editionCount > 1 ? 'editions are' : 'edition is'} ready. Scan the QR code to claim.`,
         });
       }
     },
     onError: (error) => {
       console.log("Mutation error:", error);
       toast({
-        title: "Failed to create copies",
-        description: "There was an error preparing your collectibles. Please try again.",
+        title: "Failed to send claim links",
+        description: "There was an error sending your claim links. Please try again.",
         variant: "destructive",
       });
     }
@@ -88,28 +82,13 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
     return undefined;
   };
   
-  const handleCopyCountChange = (count: number) => {
-    setCopyCount(count);
-    setShowCustomCount(false);
-  };
-  
-  const handleCustomCountChange = (value: string) => {
-    setCustomCopyCount(value);
-    
-    // Update the actual copy count if the value is a valid number
-    const numValue = parseInt(value);
-    if (!isNaN(numValue) && numValue > 0 && numValue <= 50) {
-      setCopyCount(numValue);
-    }
-  };
-  
   const handleEmailChange = (value: string) => {
     setEmail(value);
     setEmailError(validateEmail(value));
   };
   
-  const handleCreateCopies = () => {
-    console.log("Create copies button clicked with count:", copyCount);
+  const handleSendClaimLinks = () => {
+    console.log("Send claim links button clicked for editions:", editionCount);
     
     // Validate email if one was entered (optional now)
     if (email) {
@@ -126,7 +105,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       }
     }
     
-    // If validation passes, create the copies
+    // If validation passes, send claim links
     console.log("Calling send claim email mutation");
     sendClaimEmailMutation.mutate();
   };
@@ -157,11 +136,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="bg-green-500/20 border border-green-500/30 rounded-md p-3 mb-3">
             <p className="text-sm flex items-center gap-2">
               <Check className="h-4 w-4 text-green-400" />
-              <span>{copyCount} Digital Collectible{copyCount > 1 ? 's' : ''} Ready!</span>
+              <span>{editionCount} Limited Edition{editionCount > 1 ? 's' : ''} Sent!</span>
             </p>
           </div>
           <p className="text-sm">
-            We've sent your group photo copies to:
+            We've sent your limited edition collectibles to:
           </p>
           <div className="flex flex-wrap gap-2 my-2">
             <Badge variant="secondary" className="bg-purple-500/20">
@@ -176,10 +155,9 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             onClick={() => {
               setEmailSent(false);
               setEmail('');
-              setCopyCount(1);
             }}
           >
-            Create more copies
+            Send to another email
           </Button>
         </div>
       );
@@ -189,60 +167,19 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       <div>
         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md mb-4">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
-            <Copy className="h-4 w-4 text-indigo-400" />
-            <span>Group Photo Copies</span>
+            <Share2 className="h-4 w-4 text-indigo-400" />
+            <span>Share Your Limited Editions</span>
           </div>
           <p className="text-xs text-white/70">
-            Create multiple copies of your photo to share with the group - choose how many you need!
+            Send your {editionCount > 1 ? `${editionCount} limited editions` : 'limited edition'} to the group via email or QR code.
           </p>
-        </div>
-      
-        {/* Copy Count Selection */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Number of Copies</label>
-          <div className="grid grid-cols-5 gap-2 mb-3">
-            {COPY_OPTIONS.map(count => (
-              <Button
-                key={count}
-                type="button"
-                variant={copyCount === count && !showCustomCount ? "default" : "outline"}
-                className={`h-10 ${copyCount === count && !showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
-                onClick={() => handleCopyCountChange(count)}
-              >
-                {count}
-              </Button>
-            ))}
-          </div>
-          
-          <div className="flex items-center gap-2 mt-2">
-            <Button
-              type="button"
-              variant={showCustomCount ? "default" : "outline"}
-              className={`h-10 ${showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
-              onClick={() => setShowCustomCount(true)}
-            >
-              Custom
-            </Button>
-            
-            {showCustomCount && (
-              <Input
-                type="number"
-                min="1"
-                max="50"
-                value={customCopyCount}
-                onChange={(e) => handleCustomCountChange(e.target.value)}
-                placeholder="Enter count (1-50)"
-                className="w-40 bg-[#1A1A2E] border border-white/20 rounded-lg"
-              />
-            )}
-          </div>
         </div>
         
         {/* Email Input (Optional) */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2">Email (Optional)</label>
           <p className="text-xs text-white/70 mb-2">
-            Enter an email to receive your copies, or skip and use the QR code
+            Enter an email to receive your {editionCount > 1 ? 'editions' : 'edition'}, or use the QR code
           </p>
           <Input
             type="email"
@@ -260,14 +197,14 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
         
         <Button 
           className="w-full px-4 py-3 rounded-full font-bold text-white transition-colors bg-primary hover:bg-primary/90"
-          onClick={handleCreateCopies}
-          disabled={sendClaimEmailMutation.isPending || (copyCount < 1 || copyCount > 50)}
+          onClick={handleSendClaimLinks}
+          disabled={sendClaimEmailMutation.isPending}
         >
           {sendClaimEmailMutation.isPending 
-            ? 'Creating...' 
-            : copyCount > 1 
-              ? `Create ${copyCount} Copies` 
-              : 'Create Certificate'}
+            ? 'Sending...' 
+            : editionCount > 1 
+              ? `Send ${editionCount} Limited Editions` 
+              : 'Send Limited Edition'}
         </Button>
       </div>
     );
@@ -281,15 +218,15 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="text-center mb-6">
             <div className="inline-block bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
               <h2 className="font-heading text-3xl font-bold mb-1">
-                Your Proof of Vibes Collectibles
+                Your Proof of Vibes Limited Editions
               </h2>
             </div>
             <p className="text-center mb-2 text-white/70">
-              Your group photo collectibles are ready to be shared
+              Your limited edition collection is ready to be shared
             </p>
             <div className="flex justify-center items-center gap-2 text-sm text-white/50">
               <Award className="h-4 w-4" />
-              <span>Multiple copies available for everyone in your group</span>
+              <span>{editionCount > 1 ? `${editionCount} numbered editions` : 'Limited edition'} created for your group</span>
             </div>
           </div>
           
@@ -318,7 +255,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
               <h3 className="font-heading text-lg font-medium mb-3">
                 <div className="flex items-center gap-2">
                   <QrCode className="text-accent" />
-                  Share via QR Code
+                  Share Limited Editions
                 </div>
               </h3>
               <div className="flex flex-col items-center">
@@ -337,11 +274,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 </div>
                 <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-md w-full mb-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <SmartphoneNfc className="h-4 w-4 text-purple-400" />
-                    <span className="font-medium">Group Photo?</span>
+                    <Users className="h-4 w-4 text-purple-400" />
+                    <span className="font-medium">{editionCount > 1 ? `${editionCount} Limited Editions` : 'Limited Edition'}</span>
                   </div>
                   <p className="text-xs text-white/70 mt-1">
-                    Share this QR code with everyone in your group so each person can claim their copy!
+                    Share this QR code with everyone in your group to claim their limited edition copies.
                   </p>
                 </div>
                 {/* Download QR Code button hidden per request */}
@@ -353,7 +290,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="mt-8 mb-6">
             <h4 className="font-heading text-lg font-medium mb-3 flex items-center gap-2">
               <Award className="h-5 w-5 text-accent" />
-              Your Certified Digital Collectibles
+              Your Limited Edition Collection
             </h4>
             <div className="flex overflow-x-auto pb-4 space-x-3">
               {mintedNfts.map((nft, index) => (
@@ -362,14 +299,14 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                   className="flex-shrink-0 w-32 aspect-[3/4] rounded-lg overflow-hidden relative group cursor-pointer"
                   onClick={() => setPreviewNft(index)}
                 >
-                  {/* Certificate Badge */}
+                  {/* Edition Badge */}
                   <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] px-2 py-0.5 rounded-bl-md font-medium">
-                    CERTIFIED
+                    {nft.editionNumber ? `EDITION ${nft.editionNumber}/${nft.editionCount}` : 'EDITION'}
                   </div>
                   
                   <img 
                     src={nft.imageUrl} 
-                    alt={`Digital Collectible ${index + 1}`} 
+                    alt={`Edition ${nft.editionNumber || index + 1} of ${nft.editionCount || editionCount}`} 
                     className="w-full h-full object-cover" 
                   />
                   
