@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { QRCode } from 'react-qrcode-logo';
 import { Check } from 'lucide-react';
+import { Link } from 'wouter';
 
 interface ClaimNFTsProps {
   onFinish: () => void;
@@ -235,7 +236,15 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           </div>
         </div>
         
-        <div className="flex justify-center mt-8">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4 mt-8">
+          <Link href="/">
+            <Button 
+              variant="outline"
+              className="px-6 py-3 border border-white/30 hover:bg-white/10 rounded-full font-medium text-white transition-colors"
+            >
+              View in Gallery
+            </Button>
+          </Link>
           <Button 
             className="px-8 py-3 bg-green-500 hover:bg-green-600 rounded-full font-bold text-white transition-colors"
             onClick={onFinish}

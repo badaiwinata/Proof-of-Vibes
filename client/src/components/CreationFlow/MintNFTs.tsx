@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { LoaderPinwheel } from 'lucide-react';
+import { Link } from 'wouter';
 
 interface MintNFTsProps {
   onNext: () => void;
@@ -215,6 +216,20 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                 </p>
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Preview Button - Only show when minting is complete */}
+        {mintProgress === 100 && (
+          <div className="mt-6 flex justify-center">
+            <Link href="/">
+              <Button 
+                variant="outline"
+                className="px-6 py-2 border border-white/30 bg-white/10 hover:bg-white/20 rounded-full font-medium text-white transition-colors"
+              >
+                Preview in Gallery
+              </Button>
+            </Link>
           </div>
         )}
         
