@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useSolana } from '@/hooks/useSolana';
+import { Camera } from 'lucide-react';
 
 interface HeaderProps {
   onCreateClick: () => void;
@@ -48,7 +49,8 @@ export default function Header({ onCreateClick, hideCreateButton = false }: Head
               className="relative px-6 py-6 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white btn-glow"
               onClick={onCreateClick}
             >
-              Create Your NFT
+              <Camera className="h-5 w-5 mr-2" />
+              Take Photos
             </Button>
           </div>
         )}
