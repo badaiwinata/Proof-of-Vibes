@@ -15,8 +15,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nfts = await storage.getAllNfts(limit, offset);
       res.json({ nfts });
     } catch (error) {
-      console.error("Error getting NFTs:", error);
-      res.status(500).json({ message: "Failed to retrieve NFTs" });
+      console.error("Error getting digital collectibles:", error);
+      res.status(500).json({ message: "Failed to retrieve digital collectibles" });
     }
   });
 
@@ -24,12 +24,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const nft = await storage.getNft(parseInt(req.params.id));
       if (!nft) {
-        return res.status(404).json({ message: "NFT not found" });
+        return res.status(404).json({ message: "Digital collectible not found" });
       }
       res.json({ nft });
     } catch (error) {
-      console.error("Error getting NFT:", error);
-      res.status(500).json({ message: "Failed to retrieve NFT" });
+      console.error("Error getting digital collectible:", error);
+      res.status(500).json({ message: "Failed to retrieve digital collectible" });
     }
   });
 
@@ -80,23 +80,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // NFT Minting API
+  // Digital Collectible Creation API
   app.post("/api/mint", async (req: Request, res: Response) => {
     try {
       // We'd normally authenticate the user here
       const nftsToMint = req.body.nfts;
       
       if (!Array.isArray(nftsToMint) || nftsToMint.length === 0) {
-        return res.status(400).json({ message: "No NFTs to mint" });
+        return res.status(400).json({ message: "No digital collectibles to create" });
       }
       
       const mintedNfts = [];
+      const eventDate = new Date().toISOString().split('T')[0];
       
       for (const nftData of nftsToMint) {
-        // Generate a random claim token for each NFT
+        // Generate a random claim token for each collectible
         const claimToken = randomUUID();
         
-        // Validate NFT data
+        // Generate a certificate ID for authenticity
+        const certificateId = `POV-${Date.now().toString().slice(-6)}-${randomUUID().substring(0, 4)}`;
+        
+        // Validate collectible data with event information added
         const validNft = insertNftSchema.safeParse({
           userId: nftData.userId,
           imageUrl: nftData.imageUrl,
@@ -106,12 +110,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           mintAddress: nftData.mintAddress || `mint_${randomUUID().substring(0, 8)}`,
           claimToken,
           claimEmail: nftData.claimEmail,
-          metadata: nftData.metadata || {}
+          certificateId,
+          eventName: "Proof of Vibes",
+          eventDate,
+          metadata: {
+            ...nftData.metadata || {},
+            eventInfo: {
+              name: "Proof of Vibes",
+              date: eventDate,
+              type: "Event Memorabilia"
+            }
+          }
         });
         
         if (!validNft.success) {
           return res.status(400).json({ 
-            message: "Invalid NFT data", 
+            message: "Invalid digital collectible data", 
             errors: validNft.error.format() 
           });
         }
@@ -120,17 +134,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mintedNfts.push(nft);
       }
       
-      res.json({ success: true, nfts: mintedNfts });
+      res.json({ 
+        success: true, 
+        message: "Your digital collectibles have been created!",
+        nfts: mintedNfts 
+      });
     } catch (error) {
-      console.error("Error minting NFTs:", error);
-      res.status(500).json({ message: "Failed to mint NFTs" });
+      console.error("Error creating digital collectibles:", error);
+      res.status(500).json({ message: "Failed to create your digital collectibles" });
     }
   });
 
-  // NFT Claiming API
+  // Digital Collectible Claiming API
   app.post("/api/claim", async (req: Request, res: Response) => {
     try {
-      const { token, email } = req.body;
+      const { token, email, recipientName } = req.body;
       
       if (!token) {
         return res.status(400).json({ message: "Claim token is required" });
@@ -139,33 +157,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const nft = await storage.getNftByClaimToken(token);
       
       if (!nft) {
-        return res.status(404).json({ message: "NFT not found" });
+        return res.status(404).json({ message: "Digital collectible not found" });
       }
       
       if (nft.claimed) {
-        return res.status(400).json({ message: "NFT has already been claimed" });
+        return res.status(400).json({ message: "This digital collectible has already been claimed" });
       }
+      
+      // Generate a unique certificate ID if not already present
+      const certificateId = `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
+      const eventDate = new Date().toISOString().split('T')[0];
       
       // Update NFT with claim information
       const updatedNft = await storage.updateNft(nft.id, {
         claimed: true,
-        claimEmail: email || nft.claimEmail
+        claimEmail: email || nft.claimEmail,
+        claimedAt: new Date(),
+        recipientName: recipientName || "Event Attendee",
+        certificateId,
+        eventDate,
+        eventName: "Proof of Vibes"
       });
       
-      res.json({ success: true, nft: updatedNft });
+      res.json({ 
+        success: true, 
+        message: "Your Proof of Vibes collectible has been claimed successfully!",
+        nft: updatedNft
+      });
     } catch (error) {
-      console.error("Error claiming NFT:", error);
-      res.status(500).json({ message: "Failed to claim NFT" });
+      console.error("Error claiming digital collectible:", error);
+      res.status(500).json({ message: "Failed to claim your digital collectible" });
+    }
+  });
+  
+  // Enhanced Claiming API with certification
+  app.post("/api/claim-collectible", async (req: Request, res: Response) => {
+    try {
+      const { claimToken, email, recipientName } = req.body;
+      
+      if (!claimToken) {
+        return res.status(400).json({ message: "Claim token is required" });
+      }
+      
+      const nft = await storage.getNftByClaimToken(claimToken);
+      
+      if (!nft) {
+        return res.status(404).json({ message: "Digital collectible not found" });
+      }
+      
+      if (nft.claimed) {
+        return res.status(400).json({ 
+          message: "This digital collectible has already been claimed"
+        });
+      }
+      
+      // Generate event-specific certificate ID
+      const certificateId = `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
+      const eventDate = new Date().toISOString().split('T')[0];
+      
+      // Update NFT with claiming and event information
+      const updatedNft = await storage.updateNft(nft.id, { 
+        claimed: true,
+        claimedAt: new Date(),
+        claimEmail: email || nft.claimEmail,
+        recipientName: recipientName || "Event Attendee",
+        certificateId,
+        eventDate,
+        eventName: "Proof of Vibes"
+      });
+      
+      return res.json({ 
+        success: true, 
+        message: "Your exclusive digital collectible has been claimed!",
+        nft: updatedNft 
+      });
+    } catch (error) {
+      console.error("Error claiming collectible:", error);
+      return res.status(500).json({ message: "Failed to claim your digital collectible" });
     }
   });
 
   // Email claim link generation
   app.post("/api/send-claim-email", async (req: Request, res: Response) => {
     try {
-      const { nftIds, email } = req.body;
+      const { nftIds, email, recipientName } = req.body;
       
       if (!nftIds || !Array.isArray(nftIds) || nftIds.length === 0) {
-        return res.status(400).json({ message: "NFT IDs are required" });
+        return res.status(400).json({ message: "Digital collectible IDs are required" });
       }
       
       if (!email) {
@@ -173,16 +251,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // In a real implementation, we'd send an email here
-      // For this example, we'll just update the NFTs with the email
+      // For this example, we'll just update the collectibles with the email
       
       const updatedNfts = [];
+      const eventDate = new Date().toISOString().split('T')[0];
       
       for (const id of nftIds) {
         const nft = await storage.getNft(parseInt(id));
         
         if (nft) {
+          // Generate a certificate ID for this collectible
+          const certificateId = nft.certificateId || 
+            `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
+          
           const updatedNft = await storage.updateNft(nft.id, {
-            claimEmail: email
+            claimEmail: email,
+            recipientName: recipientName || null,
+            certificateId,
+            eventDate,
+            eventName: "Proof of Vibes"
           });
           
           if (updatedNft) {
@@ -193,12 +280,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ 
         success: true, 
-        message: `Claim links sent to ${email}`,
+        message: `Your Proof of Vibes collectibles have been sent to ${email}`,
         nfts: updatedNfts
       });
     } catch (error) {
-      console.error("Error sending claim email:", error);
-      res.status(500).json({ message: "Failed to send claim email" });
+      console.error("Error sending digital collectibles:", error);
+      res.status(500).json({ message: "Failed to send your digital collectibles" });
     }
   });
 
