@@ -34,6 +34,11 @@ export const nfts = pgTable("nfts", {
   certificateId: text("certificate_id"), // For "Certificate of Authenticity"
   collectionId: text("collection_id"), // For grouping related NFTs into collections
   
+  // Edition-related fields (for Editioned Minting)
+  masterNftId: integer("master_nft_id"), // Reference to the master NFT (first edition)
+  editionNumber: integer("edition_number"), // e.g., 1, 2, 3, etc.
+  editionCount: integer("edition_count"), // Total number of editions in the set
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   metadata: jsonb("metadata"),
 });

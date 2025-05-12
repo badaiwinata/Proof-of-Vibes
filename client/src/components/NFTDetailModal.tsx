@@ -250,6 +250,17 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
                       </div>
                     </div>
                     
+                    {/* Show Edition information if available */}
+                    {nft.editionNumber && nft.editionCount && (
+                      <div className="col-span-2 bg-purple-500/10 border border-purple-500/20 rounded-md p-2 mt-2">
+                        <h4 className="text-xs text-white/70 mb-1">Limited Edition</h4>
+                        <div className="flex items-center">
+                          <Award className="h-4 w-4 mr-2 text-purple-400" />
+                          <span className="font-medium">Edition {nft.editionNumber} of {nft.editionCount}</span>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div>
                       <h4 className="text-xs text-white/70 mb-1">Rarity</h4>
                       <div className="flex items-center">
