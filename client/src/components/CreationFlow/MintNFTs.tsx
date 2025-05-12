@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, Fragment } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCreationContext } from '@/context/CreationContext';
 import { useSolana } from '@/hooks/useSolana';
@@ -120,7 +120,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   };
 
   return (
-    <>
+    <Fragment>
       <div className="step-content">
         <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
           <h2 className="font-heading text-2xl font-bold mb-4 text-center">Mint Your Unique NFTs</h2>
@@ -273,7 +273,6 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         </div>
       </div>
 
-      {/* NFT Preview Modal */}
       {previewNft !== null && mintedNfts && mintedNfts.length > previewNft && (
         <NFTPreviewModal
           nft={mintedNfts[previewNft]}
@@ -281,6 +280,6 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           onClose={() => setPreviewNft(null)}
         />
       )}
-    </>
+    </Fragment>
   );
 }
