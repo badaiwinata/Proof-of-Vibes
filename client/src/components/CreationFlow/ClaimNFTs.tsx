@@ -282,13 +282,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                     Show this QR code to event staff to receive special perks!
                   </p>
                 </div>
-                <Button 
-                  variant="outline"
-                  className="w-full px-4 py-2 border border-white/20 hover:bg-white/10 rounded-full font-medium text-white transition-colors"
-                  onClick={handleDownloadQR}
-                >
-                  Download QR Code
-                </Button>
+                {/* Download QR Code button hidden per request */}
               </div>
             </div>
           </div>
