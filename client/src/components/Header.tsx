@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { useSolana } from '@/hooks/useSolana';
 
 interface HeaderProps {
   onCreateClick: () => void;
@@ -8,6 +9,7 @@ interface HeaderProps {
 }
 
 export default function Header({ onCreateClick, hideCreateButton = false }: HeaderProps) {
+  const { connected, walletAddress, connect } = useSolana();
 
   return (
     <header className="flex flex-col md:flex-row justify-between items-center mb-8">
@@ -25,7 +27,20 @@ export default function Header({ onCreateClick, hideCreateButton = false }: Head
         </span>
       </div>
       
-      <div className="flex items-center space-x-4">        
+      <div className="flex items-center space-x-4">
+        <Button 
+          variant="outline" 
+          className="hidden md:flex items-center px-4 py-2 rounded-full glassmorphism hover:bg-white/10 transition-all duration-300"
+          onClick={connect}
+        >
+          <i className="fas fa-wallet mr-2"></i>
+          <span>
+            {connected 
+              ? `${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}` 
+              : 'Connect Wallet'}
+          </span>
+        </Button>
+        
         {!hideCreateButton && (
           <div className="relative">
             <span className="absolute -inset-1 bg-gradient-to-r from-accent to-primary blur opacity-30 rounded-full"></span>
