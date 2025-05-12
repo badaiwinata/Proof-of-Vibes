@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { AlertCircle } from 'lucide-react';
 
 interface TakePhotosProps {
   onNext: () => void;
@@ -19,7 +20,8 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
     isCameraReady,
     initializeCamera, 
     takePhoto,
-    stopCamera
+    stopCamera,
+    error
   } = useCamera();
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flashActive, setFlashActive] = useState(false);
@@ -27,6 +29,7 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
   const sessionId = useRef<string>(crypto.randomUUID());
+  const [isLoading, setIsLoading] = useState(false);
 
   // Save photo to backend
   const savePhotoMutation = useMutation({
@@ -52,23 +55,29 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
   });
 
   const handleStartCamera = useCallback(async () => {
+    setIsLoading(true);
     try {
       console.log('Initializing camera...');
       await initializeCamera();
       console.log('Camera initialized successfully');
-    } catch (error) {
-      console.error('Camera initialization error:', error);
+    } catch (err) {
+      console.error('Camera initialization error:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
       toast({
         title: "Camera error",
-        description: "Failed to access your camera. Please check your permissions.",
+        description: `Failed to access your camera: ${errorMessage}. Please check your permissions.`,
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   }, [initializeCamera, toast]);
 
   // Define takePicture function before it's used
   const takePicture = async () => {
     console.log('Taking picture, camera ready:', isCameraReady);
+    
+    // Check for camera readiness
     if (!isCameraReady) {
       console.log('Camera not ready, aborting photo capture');
       toast({
@@ -178,9 +187,31 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
         <div className="relative w-full max-w-md mx-auto aspect-[3/4] bg-[#1A1A2E] rounded-xl overflow-hidden camera-frame mb-6">
           {/* Camera View */}
           {!isInitialized && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <i className="fas fa-camera text-4xl mb-3 text-white/50"></i>
-              <p className="text-white/50">Camera access required</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-3"></div>
+                  <p className="text-white/70">Initializing camera...</p>
+                </>
+              ) : error ? (
+                <>
+                  <AlertCircle className="h-12 w-12 text-red-500 mb-3" />
+                  <p className="text-white/90 font-medium">Camera error</p>
+                  <p className="text-white/60 text-sm mt-2">{error}</p>
+                  <Button 
+                    className="mt-4 px-4 py-2 bg-primary/80 rounded-full text-white text-sm"
+                    onClick={handleStartCamera}
+                    disabled={isLoading}
+                  >
+                    Try Again
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-12 w-12 text-white/50 mb-3" />
+                  <p className="text-white/70">Camera access required</p>
+                </>
+              )}
             </div>
           )}
           
@@ -214,15 +245,25 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
             <Button 
               className="mb-4 px-6 py-3 bg-primary rounded-full font-bold text-white btn-glow flex items-center"
               onClick={handleStartCamera}
+              disabled={isLoading}
             >
-              <i className="fas fa-camera-retro mr-2"></i>
-              Start Camera
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Initializing...
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Start Camera
+                </>
+              )}
             </Button>
           ) : (
             <Button 
               className="mb-4 px-6 py-3 bg-accent rounded-full font-bold text-white btn-glow"
               onClick={handleTakePhoto}
-              disabled={tries <= 0 || countdown !== null}
+              disabled={tries <= 0 || countdown !== null || !isCameraReady}
             >
               Take Photo
               <span className="ml-2 text-sm opacity-70">({tries} left)</span>
