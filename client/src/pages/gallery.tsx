@@ -8,7 +8,7 @@ import NFTDetailModal from '../components/NFTDetailModal';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronDown, RefreshCw, LayoutGrid, ChevronRight, LayoutList } from 'lucide-react';
+import { ChevronDown, RefreshCw, LayoutGrid, ChevronRight, LayoutList, Camera } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -144,6 +144,66 @@ export default function Gallery() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <Header onCreateClick={handleCreateClick} />
+      
+      {/* Hero Section */}
+      <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 rounded-2xl p-6 mb-10 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/4"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500 rounded-full filter blur-3xl opacity-20 translate-y-1/2 -translate-x-1/4"></div>
+        
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="md:w-3/5">
+            <h1 className="font-heading text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-indigo-100 text-transparent bg-clip-text mb-2">
+              Proof of Vibes
+            </h1>
+            <p className="text-white/80 mb-6 max-w-md">
+              Create and collect unique digital memorabilia from your favorite events, authenticated on the blockchain.
+            </p>
+            <Button 
+              className="px-6 py-6 h-auto bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 rounded-full font-bold text-white transition-all shadow-lg hover:shadow-indigo-500/25"
+              onClick={handleCreateClick}
+            >
+              <Camera className="h-5 w-5 mr-2" />
+              Take Photos & Create Collectibles
+            </Button>
+          </div>
+          
+          <div className="md:w-2/5 flex justify-center">
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg blur-sm opacity-75 group-hover:opacity-100 transition"></div>
+              <div className="relative bg-black rounded-lg p-1">
+                <div className="grid grid-cols-2 gap-1">
+                  {data?.nfts && data.nfts.length > 0 ? (
+                    // Show actual NFTs if available
+                    data.nfts.slice(0, 4).map((nft, index) => (
+                      <div 
+                        key={`hero-${nft.id}`} 
+                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded overflow-hidden"
+                        style={{ transform: `rotate(${index % 2 ? '-' : ''}${Math.random() * 2 + 1}deg)` }}
+                      >
+                        <img src={nft.imageUrl} alt="Collectible preview" className="w-full h-full object-cover" />
+                      </div>
+                    ))
+                  ) : (
+                    // Placeholder grid if no NFTs
+                    [...Array(4)].map((_, index) => (
+                      <div 
+                        key={`hero-placeholder-${index}`} 
+                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded overflow-hidden bg-purple-900/30"
+                        style={{ transform: `rotate(${index % 2 ? '-' : ''}${Math.random() * 2 + 1}deg)` }}
+                      >
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Camera className="text-purple-300/50 h-8 w-8" />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <main>
         <div className="mb-12">
