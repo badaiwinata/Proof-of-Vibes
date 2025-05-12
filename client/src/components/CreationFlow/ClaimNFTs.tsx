@@ -15,6 +15,7 @@ interface ClaimNFTsProps {
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const { mintedNfts } = useCreationContext();
   const [email, setEmail] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
 
   const sendClaimEmailMutation = useMutation({
@@ -23,6 +24,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       return apiRequest('POST', '/api/send-claim-email', { nftIds, email });
     },
     onSuccess: () => {
+      setEmailSent(true);
       toast({
         title: "Email sent",
         description: `Claim link sent to ${email}`,
@@ -88,24 +90,46 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             <h4 className="font-heading text-lg font-medium mb-3">Claim via Email</h4>
             <p className="text-sm text-white/70 mb-4">We'll send you a link to claim your NFTs directly to your email.</p>
             
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Your Email</label>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-4 py-2 bg-[#1A1A2E] border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            
-            <Button 
-              className="w-full px-4 py-2 bg-primary hover:bg-primary/90 rounded-full font-bold text-white transition-colors"
-              onClick={handleSendEmail}
-              disabled={sendClaimEmailMutation.isPending}
-            >
-              {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
-            </Button>
+            {emailSent ? (
+              <div className="flex flex-col items-center justify-center py-4">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3">
+                  <Check className="text-green-500 w-6 h-6" />
+                </div>
+                <p className="text-green-400 font-medium mb-1">Email Sent!</p>
+                <p className="text-sm text-white/70 text-center mb-2">
+                  Claim link has been sent to:
+                </p>
+                <p className="font-medium text-white mb-3">{email}</p>
+                <Button
+                  variant="outline"
+                  className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded-full text-sm"
+                  onClick={() => setEmailSent(false)}
+                >
+                  Send to another email
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Your Email</label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-2 bg-[#1A1A2E] border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                
+                <Button 
+                  className="w-full px-4 py-2 bg-primary hover:bg-primary/90 rounded-full font-bold text-white transition-colors"
+                  onClick={handleSendEmail}
+                  disabled={sendClaimEmailMutation.isPending}
+                >
+                  {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
+                </Button>
+              </>
+            )}
           </div>
           
           {/* QR Code Claim */}
@@ -157,7 +181,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             className="px-8 py-3 bg-green-500 hover:bg-green-600 rounded-full font-bold text-white transition-colors"
             onClick={onFinish}
           >
-            <i className="fas fa-check mr-2"></i> Done
+            Done
           </Button>
         </div>
       </div>
