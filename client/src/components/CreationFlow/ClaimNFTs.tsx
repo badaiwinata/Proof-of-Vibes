@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { QRCode } from 'react-qrcode-logo';
-import { Check, Eye, Sparkles, Share2, Award, Mail, QrCode, SmartphoneNfc, Plus, X, Users } from 'lucide-react';
+import { Check, Eye, Sparkles, Share2, Award, Mail, QrCode, SmartphoneNfc, Plus, X, Users, Copy } from 'lucide-react';
 import { Link } from 'wouter';
 import NFTPreviewModal from '@/components/NFTPreviewModal';
 import { Badge } from '@/components/ui/badge';
@@ -15,17 +15,18 @@ interface ClaimNFTsProps {
   onFinish: () => void;
 }
 
-interface Recipient {
-  name: string;
-  email: string;
-  error?: string;
-}
+// Pre-defined copy count options
+const COPY_OPTIONS = [1, 2, 4, 6, 10];
 
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const { mintedNfts } = useCreationContext();
-  const [recipients, setRecipients] = useState<Recipient[]>([{ name: '', email: '' }]);
+  const [email, setEmail] = useState<string>('');
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [copyCount, setCopyCount] = useState<number>(1);
+  const [customCopyCount, setCustomCopyCount] = useState<string>('');
+  const [showCustomCount, setShowCustomCount] = useState<boolean>(false);
   const [emailSent, setEmailSent] = useState<boolean>(false);
-  const [emailsConfirmation, setEmailsConfirmation] = useState<string[]>([]);
+  const [emailConfirmation, setEmailConfirmation] = useState<string>('');
   const [previewNft, setPreviewNft] = useState<number | null>(null);
   const { toast } = useToast();
   
@@ -36,104 +37,96 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       // Prepare NFT IDs to claim
       const nftIdsToSend = mintedNfts.map(nft => nft.id);
       
-      // Filter out any recipients with empty emails
-      const validRecipients = recipients.filter(r => r.email.trim() !== '');
-      console.log("NFT IDs to claim:", nftIdsToSend, "Recipients:", validRecipients);
+      // Create recipients array with the single email (if provided)
+      // For photobooth situation where email might be skipped
+      const recipients = email ? [{ name: '', email }] : [];
       
-      if (validRecipients.length === 0) {
-        throw new Error("At least one valid email is required");
-      }
+      console.log("NFT IDs to claim:", nftIdsToSend, "Copy count:", copyCount, "Email:", email);
       
       const response = await apiRequest('POST', '/api/send-claim-email', { 
         nftIds: nftIdsToSend,
-        recipients: validRecipients
+        recipients,
+        copyCount: copyCount // Pass the copy count to create multiple NFTs
       });
       
       const data = await response.json();
       console.log("API response:", response);
       console.log("JSON response data:", data);
-      return { data, recipients: validRecipients };
+      return { data, email };
     },
-    onSuccess: ({ data, recipients }) => {
+    onSuccess: ({ data, email }) => {
       console.log("Mutation successful with data:", data);
-      setEmailSent(true);
-      setEmailsConfirmation(recipients.map(r => r.email));
-      
-      const recipientText = recipients.length === 1 
-        ? recipients[0].email
-        : `${recipients.length} recipients`;
+      if (email) {
+        setEmailSent(true);
+        setEmailConfirmation(email);
         
-      toast({
-        title: "Success!",
-        description: `We've sent your Proof of Vibes to ${recipientText}.`,
-      });
+        toast({
+          title: "Success!",
+          description: `Your ${copyCount} Proof of Vibes ${copyCount > 1 ? 'copies have' : 'copy has'} been prepared${email ? ` and sent to ${email}` : ''}.`,
+        });
+      } else {
+        toast({
+          title: "Success!",
+          description: `Your ${copyCount} Proof of Vibes ${copyCount > 1 ? 'copies have' : 'copy has'} been prepared. Scan the QR code to claim.`,
+        });
+      }
     },
     onError: (error) => {
       console.log("Mutation error:", error);
       toast({
-        title: "Failed to send",
-        description: "There was an error sending your collectibles. Please try again.",
+        title: "Failed to create copies",
+        description: "There was an error preparing your collectibles. Please try again.",
         variant: "destructive",
       });
     }
   });
-
-  // Add a new recipient field
-  const addRecipient = () => {
-    setRecipients([...recipients, { name: '', email: '' }]);
-  };
-
-  // Remove a recipient field
-  const removeRecipient = (index: number) => {
-    if (recipients.length > 1) {
-      const newRecipients = [...recipients];
-      newRecipients.splice(index, 1);
-      setRecipients(newRecipients);
-    }
-  };
-  
-  // Update a recipient's information
-  const updateRecipient = (index: number, field: 'name' | 'email', value: string) => {
-    const newRecipients = [...recipients];
-    newRecipients[index] = { 
-      ...newRecipients[index], 
-      [field]: value,
-      // Clear error when updating the field
-      error: field === 'email' ? validateEmail(value) : newRecipients[index].error
-    };
-    setRecipients(newRecipients);
-  };
   
   // Validate an email address
-  const validateEmail = (email: string): string | undefined => {
-    if (!email) return 'Email is required';
-    if (!/^\S+@\S+\.\S+$/.test(email)) return 'Please enter a valid email address';
+  const validateEmail = (emailToCheck: string): string | undefined => {
+    if (!emailToCheck) return undefined; // Email is now optional
+    if (!/^\S+@\S+\.\S+$/.test(emailToCheck)) return 'Please enter a valid email address';
     return undefined;
   };
   
-  const handleSendEmail = () => {
-    console.log("Send email button clicked with recipients:", recipients);
+  const handleCopyCountChange = (count: number) => {
+    setCopyCount(count);
+    setShowCustomCount(false);
+  };
+  
+  const handleCustomCountChange = (value: string) => {
+    setCustomCopyCount(value);
     
-    // Validate all email addresses
-    let hasError = false;
-    const updatedRecipients = recipients.map(recipient => {
-      const error = validateEmail(recipient.email);
-      if (error) hasError = true;
-      return { ...recipient, error };
-    });
+    // Update the actual copy count if the value is a valid number
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue > 0 && numValue <= 50) {
+      setCopyCount(numValue);
+    }
+  };
+  
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setEmailError(validateEmail(value));
+  };
+  
+  const handleCreateCopies = () => {
+    console.log("Create copies button clicked with count:", copyCount);
     
-    setRecipients(updatedRecipients);
-    
-    if (hasError) {
-      toast({
-        title: "Invalid emails",
-        description: "Please check all email addresses and try again",
-        variant: "destructive",
-      });
-      return;
+    // Validate email if one was entered (optional now)
+    if (email) {
+      const error = validateEmail(email);
+      setEmailError(error);
+      
+      if (error) {
+        toast({
+          title: "Invalid email",
+          description: "Please check the email address and try again",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
-    // If all validations pass, send the emails
+    // If validation passes, create the copies
     console.log("Calling send claim email mutation");
     sendClaimEmailMutation.mutate();
   };
@@ -164,18 +157,16 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="bg-green-500/20 border border-green-500/30 rounded-md p-3 mb-3">
             <p className="text-sm flex items-center gap-2">
               <Check className="h-4 w-4 text-green-400" />
-              <span>Certificate{emailsConfirmation.length > 1 ? 's' : ''} of Authenticity sent!</span>
+              <span>Certificate{copyCount > 1 ? 's' : ''} of Authenticity sent!</span>
             </p>
           </div>
           <p className="text-sm">
             We've sent your digital collectibles to:
           </p>
           <div className="flex flex-wrap gap-2 my-2">
-            {emailsConfirmation.map((email, index) => (
-              <Badge key={index} variant="secondary" className="bg-purple-500/20">
-                {email}
-              </Badge>
-            ))}
+            <Badge variant="secondary" className="bg-purple-500/20">
+              {emailConfirmation}
+            </Badge>
           </div>
           <p className="text-sm text-white/70">
             Check your email and follow the instructions to view and share your Proof of Vibes.
@@ -184,10 +175,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full font-medium text-white transition-colors"
             onClick={() => {
               setEmailSent(false);
-              setRecipients([{ name: '', email: '' }]);
+              setEmail('');
+              setCopyCount(1);
             }}
           >
-            Send to another email
+            Create more copies
           </Button>
         </div>
       );
@@ -197,85 +189,85 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       <div>
         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md mb-4">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
-            <Users className="h-4 w-4 text-indigo-400" />
-            <span>Group Photo Collection</span>
+            <Copy className="h-4 w-4 text-indigo-400" />
+            <span>Group Photo Copies</span>
           </div>
           <p className="text-xs text-white/70">
-            Send the same group photo to multiple recipients - perfect for sharing event memories.
+            Create multiple copies of your photo to share with the group - choose how many you need!
           </p>
         </div>
       
-        {/* Multiple Recipients */}
-        <div className="space-y-4">
-          {recipients.map((recipient, index) => (
-            <div key={index} className="p-3 bg-black/20 rounded-md">
-              <div className="flex justify-between items-center mb-2">
-                <h4 className="text-sm font-medium">Recipient {index + 1}</h4>
-                {recipients.length > 1 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 w-7 p-0 text-white/70 hover:text-white hover:bg-red-500/20"
-                    onClick={() => removeRecipient(index)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              
-              {/* Name Input */}
-              <div className="mb-3">
-                <label className="block text-xs text-white/70 mb-1">Name (optional)</label>
-                <Input
-                  type="text"
-                  value={recipient.name}
-                  onChange={(e) => updateRecipient(index, 'name', e.target.value)}
-                  placeholder="Friend's name"
-                  className="w-full px-3 py-1 text-sm bg-[#1A1A2E] border border-white/20 rounded-lg"
-                />
-              </div>
-              
-              {/* Email Input */}
-              <div>
-                <label className="block text-xs text-white/70 mb-1">Email</label>
-                <Input
-                  type="email"
-                  value={recipient.email}
-                  onChange={(e) => updateRecipient(index, 'email', e.target.value)}
-                  placeholder="their@email.com"
-                  className={`w-full px-3 py-1 text-sm bg-[#1A1A2E] border ${
-                    recipient.error ? 'border-red-500' : 'border-white/20'
-                  } rounded-lg`}
-                />
-                {recipient.error && (
-                  <p className="mt-1 text-xs text-red-500">{recipient.error}</p>
-                )}
-              </div>
-            </div>
-          ))}
+        {/* Copy Count Selection */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">Number of Copies</label>
+          <div className="grid grid-cols-5 gap-2 mb-3">
+            {COPY_OPTIONS.map(count => (
+              <Button
+                key={count}
+                type="button"
+                variant={copyCount === count && !showCustomCount ? "default" : "outline"}
+                className={`h-10 ${copyCount === count && !showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
+                onClick={() => handleCopyCountChange(count)}
+              >
+                {count}
+              </Button>
+            ))}
+          </div>
           
-          {/* Add Recipient Button */}
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="w-full border-dashed border-white/30 hover:bg-white/5"
-            onClick={addRecipient}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add another recipient
-          </Button>
+          <div className="flex items-center gap-2 mt-2">
+            <Button
+              type="button"
+              variant={showCustomCount ? "default" : "outline"}
+              className={`h-10 ${showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
+              onClick={() => setShowCustomCount(true)}
+            >
+              Custom
+            </Button>
+            
+            {showCustomCount && (
+              <Input
+                type="number"
+                min="1"
+                max="50"
+                value={customCopyCount}
+                onChange={(e) => handleCustomCountChange(e.target.value)}
+                placeholder="Enter count (1-50)"
+                className="w-40 bg-[#1A1A2E] border border-white/20 rounded-lg"
+              />
+            )}
+          </div>
+        </div>
+        
+        {/* Email Input (Optional) */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2">Email (Optional)</label>
+          <p className="text-xs text-white/70 mb-2">
+            Enter an email to receive your copies, or skip and use the QR code
+          </p>
+          <Input
+            type="email"
+            value={email}
+            onChange={(e) => handleEmailChange(e.target.value)}
+            placeholder="yourgroup@email.com"
+            className={`w-full px-3 py-2 bg-[#1A1A2E] border ${
+              emailError ? 'border-red-500' : 'border-white/20'
+            } rounded-lg`}
+          />
+          {emailError && (
+            <p className="mt-1 text-xs text-red-500">{emailError}</p>
+          )}
         </div>
         
         <Button 
-          className="w-full px-4 py-2 mt-6 rounded-full font-bold text-white transition-colors bg-primary hover:bg-primary/90"
-          onClick={handleSendEmail}
-          disabled={recipients.length === 0 || sendClaimEmailMutation.isPending}
+          className="w-full px-4 py-3 rounded-full font-bold text-white transition-colors bg-primary hover:bg-primary/90"
+          onClick={handleCreateCopies}
+          disabled={sendClaimEmailMutation.isPending || (copyCount < 1 || copyCount > 50)}
         >
           {sendClaimEmailMutation.isPending 
-            ? 'Sending...' 
-            : recipients.length > 1 
-              ? `Send to ${recipients.length} recipients` 
-              : 'Send Certificate'}
+            ? 'Creating...' 
+            : copyCount > 1 
+              ? `Create ${copyCount} Copies` 
+              : 'Create Certificate'}
         </Button>
       </div>
     );

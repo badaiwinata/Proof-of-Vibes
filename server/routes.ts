@@ -264,101 +264,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Email claim link generation
+  // Email claim link generation and copy creation
   app.post("/api/send-claim-email", async (req: Request, res: Response) => {
     try {
-      const { nftIds, recipients } = req.body;
+      const { nftIds, recipients = [], copyCount = 1 } = req.body;
       
       if (!nftIds || !Array.isArray(nftIds) || nftIds.length === 0) {
         return res.status(400).json({ message: "Digital collectible IDs are required" });
       }
       
-      if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
-        return res.status(400).json({ message: "At least one recipient is required" });
+      // Ensure copy count is valid
+      const numCopies = parseInt(copyCount.toString());
+      if (isNaN(numCopies) || numCopies < 1 || numCopies > 50) {
+        return res.status(400).json({ message: "Copy count must be between 1 and 50" });
       }
       
-      // In a real implementation, we'd send emails here
-      // For this demo, we'll create a copy of the NFT for each recipient
+      // In a photobooth environment, email might be optional
+      // We'll create the copies regardless of whether there are recipients
       
       const allUpdatedNfts = [];
       const eventDate = new Date().toISOString().split('T')[0];
       const timestamp = Date.now().toString().slice(-6);
-      const collectionId = `group-${timestamp}`;
+      const collectionId = `group-${timestamp}`; // Use the same collection ID for all copies
       
-      // Process each recipient
-      for (const recipient of recipients) {
-        const { email, name } = recipient;
+      // For each original NFT
+      for (const id of nftIds) {
+        const originalNft = await storage.getNft(parseInt(id));
         
-        if (!email) {
-          continue; // Skip invalid recipients
-        }
+        if (!originalNft) continue;
         
-        const recipientNfts = [];
-        
-        // For each original NFT, create a copy for this recipient
-        for (const id of nftIds) {
-          const originalNft = await storage.getNft(parseInt(id));
+        // First, update the original NFT with collection ID (and recipient info if available)
+        if (allUpdatedNfts.length === 0) {
+          // Generate a certificate ID for this collectible
+          const certificateId = originalNft.certificateId || 
+            `POV-${originalNft.id}-${timestamp}`;
           
-          if (originalNft) {
-            // For the first recipient, update the original NFT
-            // For additional recipients, create a new NFT (clone of the original)
-            if (recipientNfts.length === 0 && allUpdatedNfts.length === 0) {
-              // Generate a certificate ID for this collectible
-              const certificateId = originalNft.certificateId || 
-                `POV-${originalNft.id}-${timestamp}`;
-              
-              // Update the original NFT with claiming information
-              const updatedNft = await storage.updateNft(originalNft.id, {
-                claimEmail: email,
-                recipientName: name || "Event Attendee",
-                certificateId,
-                eventDate,
-                eventName: "Proof of Vibes",
-                collectionId // Use the same collection ID for all NFTs in this group
-              });
-              
-              if (updatedNft) {
-                recipientNfts.push(updatedNft);
-                allUpdatedNfts.push(updatedNft);
-              }
-            } else {
-              // For additional recipients or NFTs, create a new NFT entry
-              // This is a simplified approach - in a real app, you'd mint a new NFT on the blockchain
-              const newId = Math.floor(Math.random() * 1000);
-              const certificateId = `POV-${newId}-${timestamp}`;
-              
-              const newNft = await storage.createNft({
-                userId: originalNft.userId,
-                imageUrl: originalNft.imageUrl,
-                message: originalNft.message,
-                template: originalNft.template,
-                vibes: originalNft.vibes,
-                claimEmail: email,
-                recipientName: name || "Event Attendee",
-                certificateId,
-                eventDate,
-                collectionId, // Use the same collection ID for all NFTs in this group
-                eventName: "Proof of Vibes"
-              });
-              
-              recipientNfts.push(newNft);
-              allUpdatedNfts.push(newNft);
-            }
+          // Prepare update object
+          const updateData: any = {
+            certificateId,
+            eventDate,
+            eventName: "Proof of Vibes",
+            collectionId // Use the same collection ID for all NFTs in this group
+          };
+          
+          // Add recipient data if available
+          if (recipients.length > 0 && recipients[0].email) {
+            updateData.claimEmail = recipients[0].email;
+            updateData.recipientName = recipients[0].name || "Event Attendee";
+          }
+          
+          // Update the original NFT
+          const updatedNft = await storage.updateNft(originalNft.id, updateData);
+          
+          if (updatedNft) {
+            allUpdatedNfts.push(updatedNft);
           }
         }
         
-        // Log what would happen in a real implementation
-        console.log(`Claim details prepared for email ${email} with ${recipientNfts.length} NFTs`);
+        // Create additional copies (numCopies - 1 since we already updated the original)
+        for (let i = 1; i < numCopies; i++) {
+          // Generate unique IDs for copies
+          const newId = Date.now() + Math.floor(Math.random() * 1000) + i;
+          const certificateId = `POV-${newId}-${timestamp}`;
+          
+          // Prepare NFT data
+          const nftData: any = {
+            userId: originalNft.userId,
+            imageUrl: originalNft.imageUrl,
+            message: originalNft.message,
+            template: originalNft.template,
+            vibes: originalNft.vibes,
+            certificateId,
+            eventDate,
+            collectionId, // Use the same collection ID for all NFTs in this group
+            eventName: "Proof of Vibes"
+          };
+          
+          // If there's a recipient for this copy, attach their info
+          if (recipients.length > i && recipients[i].email) {
+            nftData.claimEmail = recipients[i].email;
+            nftData.recipientName = recipients[i].name || "Event Attendee";
+          }
+          
+          // Create the copy
+          const newNft = await storage.createNft(nftData);
+          allUpdatedNfts.push(newNft);
+        }
+      }
+      
+      // Build appropriate success message
+      let message;
+      if (recipients.length > 0) {
+        const emailAddresses = recipients
+          .filter(r => r.email)
+          .map(r => r.email)
+          .join(', ');
+        
+        message = emailAddresses
+          ? `Your Proof of Vibes collectibles have been sent to ${emailAddresses}`
+          : `Your ${numCopies} Proof of Vibes collectibles have been created`;
+      } else {
+        message = `Your ${numCopies} Proof of Vibes collectibles have been created`;
       }
       
       res.json({ 
         success: true, 
-        message: `Your Proof of Vibes collectibles have been sent to ${recipients.length} recipient(s)`,
+        message,
         nfts: allUpdatedNfts
       });
     } catch (error) {
-      console.error("Error sending digital collectibles:", error);
-      res.status(500).json({ message: "Failed to send your digital collectibles" });
+      console.error("Error creating digital collectibles:", error);
+      res.status(500).json({ message: "Failed to create your digital collectibles" });
     }
   });
 
