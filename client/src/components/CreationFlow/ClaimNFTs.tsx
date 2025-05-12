@@ -19,7 +19,7 @@ interface ClaimNFTsProps {
 const COPY_OPTIONS = [1, 2, 4, 6, 10];
 
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
-  const { mintedNfts } = useCreationContext();
+  const { mintedNfts, editionCount } = useCreationContext();
   const [email, setEmail] = useState<string>('');
   const [emailError, setEmailError] = useState<string | undefined>();
   const [copyCount, setCopyCount] = useState<number>(1);

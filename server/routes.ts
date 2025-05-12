@@ -142,12 +142,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           certificateId,
           eventName: "Proof of Vibes",
           eventDate,
+          collectionId,
+          editionNumber: 1, // This is the master edition (edition 1)
+          editionCount: editionCount, // Total number of editions that will be created
+          masterNftId: null, // This is the master itself, so no masterNftId
           metadata: {
             ...nftData.metadata || {},
             eventInfo: {
               name: "Proof of Vibes",
               date: eventDate,
               type: "Event Memorabilia"
+            },
+            editionInfo: {
+              number: 1,
+              count: editionCount
             }
           }
         });
@@ -159,13 +167,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        const nft = await storage.createNft(validNft.data);
-        mintedNfts.push(nft);
+        // Create the master NFT (edition 1)
+        const masterNft = await storage.createNft(validNft.data);
+        mintedNfts.push(masterNft);
+        
+        // If we need more than one edition, create additional copies
+        if (editionCount > 1) {
+          // For editions 2 through N
+          for (let edition = 2; edition <= editionCount; edition++) {
+            // Each edition gets a unique claim token
+            const editionClaimToken = randomUUID();
+            
+            // Create a copy of the NFT data with edition specific information
+            const baseMetadata = typeof validNft.data.metadata === 'object' && validNft.data.metadata !== null
+              ? validNft.data.metadata
+              : {};
+              
+            const editionNftData = {
+              ...validNft.data,
+              editionNumber: edition,
+              masterNftId: masterNft.id, // Reference to the master NFT
+              claimToken: editionClaimToken, // Each edition gets its own claim token
+              metadata: {
+                ...baseMetadata,
+                editionInfo: {
+                  number: edition,
+                  count: editionCount
+                }
+              }
+            };
+            
+            // Create the edition NFT
+            const editionNft = await storage.createNft(editionNftData);
+            mintedNfts.push(editionNft);
+          }
+        }
       }
       
+      // Create a message that mentions the edition count if greater than 1
+      const message = editionCount > 1
+        ? `Your limited edition set of ${editionCount} collectibles has been created!`
+        : "Your digital collectible has been created!";
+        
       res.json({ 
         success: true, 
-        message: "Your digital collectibles have been created!",
+        message,
         nfts: mintedNfts 
       });
     } catch (error) {
