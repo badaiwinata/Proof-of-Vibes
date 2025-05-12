@@ -130,6 +130,17 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
 
   // Start countdown and take photo when it reaches zero
   const startCountdown = useCallback(() => {
+    // Check if camera is ready before starting countdown
+    if (!isCameraReady) {
+      console.log('Cannot start countdown, camera not ready');
+      toast({
+        title: "Camera not ready",
+        description: "Please wait for the camera to initialize fully.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     console.log('Starting countdown');
     setCountdown(3);
     
@@ -148,7 +159,7 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
         return prevCount - 1;
       });
     }, 1000);
-  }, []); // No dependencies since takePicture is not wrapped in useCallback
+  }, [isCameraReady, toast]); // Add dependencies
 
   const handleTakePhoto = useCallback(() => {
     if (tries <= 0) {

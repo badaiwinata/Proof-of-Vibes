@@ -78,9 +78,12 @@ export function useCamera() {
             videoRef.current.play()
               .then(() => {
                 console.log('Video playing successfully');
-                setIsCameraReady(true);
                 setIsInitialized(true);
-                resolve();
+                setIsCameraReady(true);
+                // Add a short delay to ensure state updates are processed
+                setTimeout(() => {
+                  resolve();
+                }, 500);
               })
               .catch(error => {
                 console.error("Error playing video:", error);
@@ -124,20 +127,17 @@ export function useCamera() {
       setIsCameraReady(false);
       throw error;
     }
-  }, [isCameraReady]);
+  }, []);
 
   // Take photo
   const takePhoto = useCallback(async (): Promise<string | null> => {
     console.log('Taking photo, camera ready:', isCameraReady, 'video ref:', !!videoRef.current);
     setError(null);
     
-    if (!isCameraReady) {
-      setError('Camera not ready');
-      return null;
-    }
-    
-    if (!videoRef.current) {
-      setError('Video element not found');
+    // Force check for camera readiness by checking videoRef
+    if (!videoRef.current || !videoRef.current.srcObject) {
+      console.error('Camera video element not ready or no stream attached');
+      setError('Camera not ready - no video stream found');
       return null;
     }
 
@@ -181,7 +181,7 @@ export function useCamera() {
       setError(`Error taking photo: ${errorMsg}`);
       return null;
     }
-  }, [isCameraReady]);
+  }, []);
 
   // Stop camera
   const stopCamera = useCallback(() => {
