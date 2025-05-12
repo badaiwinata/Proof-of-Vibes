@@ -274,5 +274,3 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         />
       )}
     </Fragment>
-  );
-}
