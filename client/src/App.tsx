@@ -10,14 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { CreationProvider } from "./context/CreationContext";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Gallery} />
-      <Route path="/create" component={CreateNFT} />
-      <Route component={NotFound} />
-    </Switch>
+    <CreationProvider>
+      <Switch>
+        <Route path="/" component={Gallery} />
+        <Route path="/create" component={CreateNFT} />
+        <Route component={NotFound} />
+      </Switch>
+    </CreationProvider>
   );
 }
 
