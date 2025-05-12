@@ -112,58 +112,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // We'd normally authenticate the user here
       const nftsToMint = req.body.nfts;
+      const copyCount = req.body.copyCount || 1;
       
+      // Validate inputs
       if (!Array.isArray(nftsToMint) || nftsToMint.length === 0) {
         return res.status(400).json({ message: "No digital collectibles to create" });
       }
       
+      // Validate copy count
+      const numCopies = parseInt(copyCount.toString());
+      if (isNaN(numCopies) || numCopies < 1 || numCopies > 50) {
+        return res.status(400).json({ message: "Copy count must be between 1 and 50" });
+      }
+      
       const mintedNfts = [];
       const eventDate = new Date().toISOString().split('T')[0];
+      const timestamp = Date.now().toString().slice(-6);
+      const collectionId = `group-${timestamp}`; // Shared collection ID for all copies
       
+      // For each photo selected by the user
       for (const nftData of nftsToMint) {
-        // Generate a random claim token for each collectible
-        const claimToken = randomUUID();
-        
-        // Generate a certificate ID for authenticity
-        const certificateId = `POV-${Date.now().toString().slice(-6)}-${randomUUID().substring(0, 4)}`;
-        
-        // Validate collectible data with event information added
-        const validNft = insertNftSchema.safeParse({
-          userId: nftData.userId,
-          imageUrl: nftData.imageUrl,
-          message: nftData.message,
-          template: nftData.template,
-          vibes: nftData.vibes,
-          mintAddress: nftData.mintAddress || `mint_${randomUUID().substring(0, 8)}`,
-          claimToken,
-          claimEmail: nftData.claimEmail,
-          certificateId,
-          eventName: "Proof of Vibes",
-          eventDate,
-          metadata: {
-            ...nftData.metadata || {},
-            eventInfo: {
-              name: "Proof of Vibes",
-              date: eventDate,
-              type: "Event Memorabilia"
+        // Create the specified number of copies
+        for (let copyIndex = 0; copyIndex < numCopies; copyIndex++) {
+          // Generate a random claim token for each collectible
+          const claimToken = randomUUID();
+          
+          // Generate a certificate ID for authenticity
+          // For copies after the first one, add a unique identifier
+          const copyIdentifier = copyIndex > 0 ? `-copy${copyIndex}` : '';
+          const certificateId = `POV-${timestamp}${copyIdentifier}-${randomUUID().substring(0, 4)}`;
+          
+          // Validate collectible data with event information added
+          const validNft = insertNftSchema.safeParse({
+            userId: nftData.userId,
+            imageUrl: nftData.imageUrl,
+            message: nftData.message,
+            template: nftData.template,
+            vibes: nftData.vibes,
+            mintAddress: nftData.mintAddress || `mint_${randomUUID().substring(0, 8)}`,
+            claimToken,
+            claimEmail: nftData.claimEmail,
+            certificateId,
+            eventName: "Proof of Vibes",
+            eventDate,
+            collectionId, // Same collection ID for all copies
+            metadata: {
+              ...nftData.metadata || {},
+              eventInfo: {
+                name: "Proof of Vibes",
+                date: eventDate,
+                type: "Event Memorabilia"
+              },
+              copyInfo: {
+                copyNumber: copyIndex + 1,
+                totalCopies: numCopies
+              }
             }
-          }
-        });
-        
-        if (!validNft.success) {
-          return res.status(400).json({ 
-            message: "Invalid digital collectible data", 
-            errors: validNft.error.format() 
           });
+          
+          if (!validNft.success) {
+            return res.status(400).json({ 
+              message: "Invalid digital collectible data", 
+              errors: validNft.error.format() 
+            });
+          }
+          
+          const nft = await storage.createNft(validNft.data);
+          mintedNfts.push(nft);
         }
-        
-        const nft = await storage.createNft(validNft.data);
-        mintedNfts.push(nft);
       }
       
       res.json({ 
         success: true, 
-        message: "Your digital collectibles have been created!",
+        message: `Your ${numCopies > 1 ? numCopies + ' digital collectibles have' : 'digital collectible has'} been created!`,
         nfts: mintedNfts 
       });
     } catch (error) {
