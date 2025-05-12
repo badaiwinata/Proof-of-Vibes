@@ -71,30 +71,38 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   };
 
   const simulateMintingProgress = () => {
+    const photoCount = selectedPhotos.length;
     let progress = 10;
     const interval = setInterval(() => {
       progress += 5;
       setMintProgress(progress);
+      
+      // Calculate when each NFT should be shown as minted based on progress and number of NFTs
+      const progressSteps = photoCount === 1 
+        ? [60] // Only 1 NFT: show at 60% progress
+        : photoCount === 2 
+          ? [40, 80] // 2 NFTs: show at 40% and 80% progress
+          : [40, 70, 90]; // 3 NFTs: show at 40%, 70%, and 90% progress
       
       // Update status text based on progress
       if (progress <= 30) {
         setMintStatus('Preparing metadata...');
       } else if (progress <= 60) {
         setMintStatus('Uploading to IPFS...');
-        // Show first NFT as minted
-        if (progress >= 40 && !mintedPhotos.includes(0)) {
+        // Show first NFT as minted if we have at least 1 photo
+        if (progress >= progressSteps[0] && photoCount >= 1 && !mintedPhotos.includes(0)) {
           setMintedPhotos(prev => [...prev, 0]);
         }
       } else if (progress <= 90) {
         setMintStatus('Confirming on blockchain...');
-        // Show second NFT as minted
-        if (progress >= 70 && !mintedPhotos.includes(1)) {
+        // Show second NFT as minted if we have at least 2 photos
+        if (progress >= progressSteps[1] && photoCount >= 2 && !mintedPhotos.includes(1)) {
           setMintedPhotos(prev => [...prev, 1]);
         }
       } else {
         setMintStatus('Minting complete!');
-        // Show third NFT as minted
-        if (!mintedPhotos.includes(2)) {
+        // Show third NFT as minted if we have 3 photos
+        if (progress >= progressSteps[2] && photoCount >= 3 && !mintedPhotos.includes(2)) {
           setMintedPhotos(prev => [...prev, 2]);
         }
       }
@@ -163,9 +171,9 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             <div className="flex items-center justify-between p-4 bg-[#1A1A2E] border border-white/20 rounded-lg mb-4">
               <div>
                 <p className="font-medium">Estimated cost</p>
-                <p className="text-sm text-white/70">Minting fee: 0.01 SOL × 3 NFTs</p>
+                <p className="text-sm text-white/70">Minting fee: 0.01 SOL × {selectedPhotos.length} NFT{selectedPhotos.length !== 1 ? 's' : ''}</p>
               </div>
-              <p className="font-bold">0.03 SOL</p>
+              <p className="font-bold">{(0.01 * selectedPhotos.length).toFixed(2)} SOL</p>
             </div>
             
             <div className="flex justify-center">
@@ -180,7 +188,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               >
                 {mintNftsMutation.isPending || mintProgress > 0 ? (
                   <>
-                    <span className="opacity-0">Mint 3 NFTs</span>
+                    <span className="opacity-0">Mint {selectedPhotos.length} NFT{selectedPhotos.length !== 1 ? 's' : ''}</span>
                     <span className="absolute inset-0 flex items-center justify-center">
                       <LoaderPinwheel className="animate-spin h-5 w-5 mr-2" />
                     </span>
@@ -188,7 +196,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                 ) : mintProgress === 100 ? (
                   'Minting Complete!'
                 ) : (
-                  'Mint 3 NFTs'
+                  `Mint ${selectedPhotos.length} NFT${selectedPhotos.length !== 1 ? 's' : ''}`
                 )}
               </Button>
             </div>
@@ -216,7 +224,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             className="px-6 py-2 border border-white/20 rounded-full font-medium text-white hover:bg-white/10 transition-colors"
             onClick={onBack}
           >
-            <i className="fas fa-arrow-left mr-2"></i> Back
+            ← Back
           </Button>
           
           <Button 
@@ -226,7 +234,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             onClick={onNext}
             disabled={mintProgress < 100}
           >
-            Next: Claim NFTs <i className="fas fa-arrow-right ml-2"></i>
+            Next: Claim NFTs →
           </Button>
         </div>
       </div>

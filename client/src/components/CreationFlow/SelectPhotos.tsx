@@ -36,10 +36,10 @@ export default function SelectPhotos({ onNext, onBack }: SelectPhotosProps) {
   };
 
   const handleNext = () => {
-    if (selectedPhotos.length !== 3) {
+    if (selectedPhotos.length === 0) {
       toast({
-        title: "Invalid selection",
-        description: "Please select exactly 3 photos to continue.",
+        title: "No photos selected",
+        description: "Please select at least 1 photo to continue.",
         variant: "destructive",
       });
       return;
@@ -51,8 +51,8 @@ export default function SelectPhotos({ onNext, onBack }: SelectPhotosProps) {
   return (
     <div className="step-content">
       <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
-        <h2 className="font-heading text-2xl font-bold mb-4 text-center">Select Your 3 Favorite Photos</h2>
-        <p className="text-center mb-6 text-white/70">These will be turned into unique NFTs. Choose wisely!</p>
+        <h2 className="font-heading text-2xl font-bold mb-4 text-center">Select Your Favorite Photos</h2>
+        <p className="text-center mb-6 text-white/70">Choose up to 3 photos to be turned into unique NFTs!</p>
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           {photos.map((photo, index) => (
@@ -83,7 +83,7 @@ export default function SelectPhotos({ onNext, onBack }: SelectPhotosProps) {
         
         <div className="text-center mb-6">
           <p className="text-white/70">{selectedCount}/3 photos selected</p>
-          <p className="text-sm text-white/50 mt-1">Select exactly 3 photos to continue</p>
+          <p className="text-sm text-white/50 mt-1">Select at least 1 photo to continue (max 3)</p>
         </div>
         
         <div className="mt-6 flex justify-between">
@@ -92,15 +92,15 @@ export default function SelectPhotos({ onNext, onBack }: SelectPhotosProps) {
             className="px-6 py-2 border border-white/20 rounded-full font-medium text-white hover:bg-white/10 transition-colors"
             onClick={onBack}
           >
-            <i className="fas fa-arrow-left mr-2"></i> Back
+            ← Back
           </Button>
           
           <Button 
-            className={`px-6 py-2 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white ${selectedCount === 3 ? '' : 'opacity-50 cursor-not-allowed'}`}
+            className={`px-6 py-2 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white ${selectedCount > 0 ? '' : 'opacity-50 cursor-not-allowed'}`}
             onClick={handleNext}
-            disabled={selectedCount !== 3}
+            disabled={selectedCount === 0}
           >
-            Next: Choose Style <i className="fas fa-arrow-right ml-2"></i>
+            Next: Choose Style →
           </Button>
         </div>
       </div>
