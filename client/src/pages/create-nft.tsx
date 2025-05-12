@@ -103,7 +103,10 @@ export default function CreateNFT() {
           
           {currentStep === 'choose-template' && (
             <ChooseTemplate 
-              onNext={() => handleNext('mint-nfts')} 
+              onNext={() => {
+                // Show edition selection popup instead of going directly to mint
+                setShowEditionSelection(true);
+              }} 
               onBack={() => handleBack('select-photos')} 
             />
           )}

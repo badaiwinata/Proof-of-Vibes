@@ -15,7 +15,7 @@ interface MintNFTsProps {
 }
 
 export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
-  const { selectedPhotos, templateSelection, setMintedNfts, mintedNfts } = useCreationContext();
+  const { selectedPhotos, templateSelection, setMintedNfts, mintedNfts, editionCount } = useCreationContext();
   const { connected, walletAddress } = useSolana(); // We're already connected
   const [mintProgress, setMintProgress] = useState(0);
   const [mintStatus, setMintStatus] = useState('');
@@ -42,7 +42,10 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       console.log("Preparing to mint collectibles:", nftsToMint);
       
       try {
-        const response = await apiRequest('POST', '/api/mint', { nfts: nftsToMint });
+        const response = await apiRequest('POST', '/api/mint', { 
+          nfts: nftsToMint,
+          editionCount: editionCount // Include the edition count from context
+        });
         const data = await response.json();
         console.log("Mint API response:", data);
         return data;

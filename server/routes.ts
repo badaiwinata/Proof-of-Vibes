@@ -112,6 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // We'd normally authenticate the user here
       const nftsToMint = req.body.nfts;
+      const editionCount = req.body.editionCount || 1; // Default to 1 if not provided
       
       if (!Array.isArray(nftsToMint) || nftsToMint.length === 0) {
         return res.status(400).json({ message: "No digital collectibles to create" });
@@ -119,6 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const mintedNfts = [];
       const eventDate = new Date().toISOString().split('T')[0];
+      const collectionId = `collection-${Date.now().toString()}`; // Same collection ID for all NFTs in this batch
       
       for (const nftData of nftsToMint) {
         // Generate a random claim token for each collectible
