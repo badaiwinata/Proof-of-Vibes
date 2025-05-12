@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCreationContext } from '@/context/CreationContext';
-import { useSolana } from '@/hooks/useSolana';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -14,7 +13,6 @@ interface MintNFTsProps {
 
 export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   const { selectedPhotos, templateSelection, setMintedNfts } = useCreationContext();
-  const { connected, walletAddress, connect } = useSolana();
   const [mintProgress, setMintProgress] = useState(0);
   const [mintStatus, setMintStatus] = useState('');
   const [mintedPhotos, setMintedPhotos] = useState<number[]>([]);
@@ -51,15 +49,6 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   });
 
   const handleStartMinting = () => {
-    if (!connected) {
-      toast({
-        title: "Wallet not connected",
-        description: "Please connect your wallet to mint NFTs",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setMintStatus('Preparing to mint...');
     setMintProgress(10);
     
@@ -144,71 +133,56 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           ))}
         </div>
         
-        {!connected ? (
-          /* Wallet Connection Prompt */
-          <div className="bg-[#1A1A2E] border border-white/20 rounded-lg p-4 mb-6">
-            <p className="text-center font-medium mb-3">Connect your Solana wallet to mint these NFTs</p>
-            <div className="flex justify-center">
-              <Button 
-                className="px-6 py-2 bg-primary hover:bg-primary/90 rounded-full font-bold text-white transition-colors"
-                onClick={connect}
-              >
-                <i className="fas fa-wallet mr-2"></i> Connect Wallet
-              </Button>
+        {/* Minting Controls */}
+        <div>
+          <div className="flex items-center justify-between p-4 bg-[#1A1A2E] border border-white/20 rounded-lg mb-4">
+            <div>
+              <p className="font-medium">Minting info</p>
+              <p className="text-sm text-white/70">You're creating 3 unique NFTs</p>
             </div>
+            <p className="font-bold text-accent">Proof of Vibes</p>
           </div>
-        ) : (
-          /* Minting Controls */
-          <div>
-            <div className="flex items-center justify-between p-4 bg-[#1A1A2E] border border-white/20 rounded-lg mb-4">
-              <div>
-                <p className="font-medium">Estimated cost</p>
-                <p className="text-sm text-white/70">Minting fee: 0.01 SOL × 3 NFTs</p>
-              </div>
-              <p className="font-bold">0.03 SOL</p>
-            </div>
-            
-            <div className="flex justify-center">
-              <Button
-                className={`relative px-8 py-3 ${
-                  mintProgress === 100
-                    ? 'bg-green-500 hover:bg-green-600'
-                    : 'bg-gradient-to-r from-primary to-secondary'
-                } rounded-full font-bold text-white btn-glow`}
-                onClick={handleStartMinting}
-                disabled={mintNftsMutation.isPending || mintProgress > 0}
-              >
-                {mintNftsMutation.isPending || mintProgress > 0 ? (
-                  <>
-                    <span className="opacity-0">Mint 3 NFTs</span>
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <LoaderPinwheel className="animate-spin h-5 w-5 mr-2" />
-                    </span>
-                  </>
-                ) : mintProgress === 100 ? (
-                  'Minting Complete!'
-                ) : (
-                  'Mint 3 NFTs'
-                )}
-              </Button>
-            </div>
-            
-            {/* Minting Progress */}
-            {mintProgress > 0 && (
-              <div className="mt-4">
-                <div className="w-full bg-[#1A1A2E] rounded-full h-2 mb-2">
-                  <div 
-                    className="bg-accent h-2 rounded-full" 
-                    style={{ width: `${mintProgress}%` }}
-                  ></div>
-                </div>
-                <p className="text-sm text-center text-white/70">
-                  {mintStatus}
-                </p>
-              </div>
-            )}
+          
+          <div className="flex justify-center">
+            <Button
+              className={`relative px-8 py-3 ${
+                mintProgress === 100
+                  ? 'bg-green-500 hover:bg-green-600'
+                  : 'bg-gradient-to-r from-primary to-secondary'
+              } rounded-full font-bold text-white btn-glow`}
+              onClick={handleStartMinting}
+              disabled={mintNftsMutation.isPending || mintProgress > 0}
+            >
+              {mintNftsMutation.isPending || mintProgress > 0 ? (
+                <>
+                  <span className="opacity-0">Mint 3 NFTs</span>
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <LoaderPinwheel className="animate-spin h-5 w-5 mr-2" />
+                  </span>
+                </>
+              ) : mintProgress === 100 ? (
+                'Minting Complete!'
+              ) : (
+                'Mint 3 NFTs'
+              )}
+            </Button>
           </div>
-        )}
+          
+          {/* Minting Progress */}
+          {mintProgress > 0 && (
+            <div className="mt-4">
+              <div className="w-full bg-[#1A1A2E] rounded-full h-2 mb-2">
+                <div 
+                  className="bg-accent h-2 rounded-full" 
+                  style={{ width: `${mintProgress}%` }}
+                ></div>
+              </div>
+              <p className="text-sm text-center text-white/70">
+                {mintStatus}
+              </p>
+            </div>
+          )}
+        </div>
         
         <div className="mt-6 flex justify-between">
           <Button 
