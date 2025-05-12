@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import NFTCard from '../components/Gallery/NFTCard';
+import NFTDetailModal from '../components/NFTDetailModal';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,6 +16,10 @@ import type { Nft } from '@shared/schema';
 export default function Gallery() {
   const [, navigate] = useLocation();
   const [sortBy, setSortBy] = useState('latest');
+  const [viewMode, setViewMode] = useState<'all' | 'collections'>('all');
+  const [selectedNft, setSelectedNft] = useState<Nft | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   
   const { data, isLoading, error, refetch } = useQuery<{ nfts: Nft[] }>({
     queryKey: ['/api/nfts'],
@@ -22,12 +27,31 @@ export default function Gallery() {
     refetchOnWindowFocus: true,
     staleTime: 10000, // Only consider data stale after 10 seconds
   });
+  
+  // Check URL for collectible parameter to auto-open modal
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const collectibleId = params.get('collectible');
+    
+    if (collectibleId && data?.nfts) {
+      const nft = data.nfts.find(n => n.id.toString() === collectibleId);
+      if (nft) {
+        setSelectedNft(nft);
+        setDetailModalOpen(true);
+      }
+    }
+    
+    // Check for collection parameter
+    const collectionId = params.get('collection');
+    if (collectionId) {
+      setSelectedCollection(collectionId);
+      setViewMode('collections');
+    }
+  }, [data?.nfts]);
 
   const handleCreateClick = () => {
     navigate('/create');
   };
-
-  const [viewMode, setViewMode] = useState<'all' | 'collections'>('all');
   
   // Sorting logic
   const sortNfts = (nfts: Nft[]) => {
@@ -71,6 +95,38 @@ export default function Gallery() {
   };
   
   const collections = groupedByCollection();
+  
+  // Handle opening the detail modal for an NFT
+  const handleNftClick = (nft: Nft) => {
+    setSelectedNft(nft);
+    setDetailModalOpen(true);
+    
+    // Update URL with collectible ID for sharing without page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('collectible', nft.id.toString());
+    window.history.pushState({}, '', url);
+  };
+  
+  // Handle closing the modal
+  const handleCloseModal = () => {
+    setDetailModalOpen(false);
+    
+    // Remove the collectible parameter from URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('collectible');
+    window.history.pushState({}, '', url);
+  };
+  
+  // Handle viewing a specific collection
+  const handleViewCollection = (collectionId: string) => {
+    setSelectedCollection(collectionId);
+    setViewMode('collections');
+    
+    // Update URL with collection ID for sharing
+    const url = new URL(window.location.href);
+    url.searchParams.set('collection', collectionId);
+    window.history.pushState({}, '', url);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -153,7 +209,9 @@ export default function Gallery() {
                 // All Items View
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                   {sortedNfts.map((nft) => (
-                    <NFTCard key={nft.id} nft={nft} />
+                    <div key={nft.id} onClick={() => handleNftClick(nft)}>
+                      <NFTCard nft={nft} />
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -171,7 +229,7 @@ export default function Gallery() {
                           variant="ghost" 
                           size="sm"
                           className="text-white/70 hover:text-white"
-                          onClick={() => navigate(`/collection/${collectionId}`)}
+                          onClick={() => handleViewCollection(collectionId)}
                         >
                           View All
                           <ChevronRight className="ml-1 h-4 w-4" />
@@ -180,13 +238,15 @@ export default function Gallery() {
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {nfts.slice(0, 4).map((nft) => (
-                          <NFTCard key={nft.id} nft={nft} />
+                          <div key={nft.id} onClick={() => handleNftClick(nft)} className="cursor-pointer">
+                            <NFTCard nft={nft} />
+                          </div>
                         ))}
                         
                         {nfts.length > 4 && (
                           <div 
                             className="relative rounded-xl overflow-hidden glassmorphism flex items-center justify-center cursor-pointer"
-                            onClick={() => navigate(`/collection/${collectionId}`)}
+                            onClick={() => handleViewCollection(collectionId)}
                           >
                             {/* Show the first image that's not displayed yet */}
                             <img 
@@ -222,6 +282,16 @@ export default function Gallery() {
       </main>
       
       <Footer />
+      
+      {/* NFT Detail Modal */}
+      {selectedNft && (
+        <NFTDetailModal
+          nft={selectedNft}
+          isOpen={detailModalOpen}
+          onClose={handleCloseModal}
+          onViewCollection={(collId) => handleViewCollection(collId)}
+        />
+      )}
     </div>
   );
 }

@@ -43,16 +43,11 @@ export default function NFTCard({ nft }: NFTCardProps) {
   // Creator name from event info or default
   const creatorName = "Proof of Vibes";
   
-  // Function to handle card click
-  const handleCardClick = () => {
-    // Navigate to NFT detail page
-    window.location.href = `/nft/${nft.id}`;
-  };
+  // The parent will handle the click event, this is now just for display
 
   return (
     <div 
       className="nft-card rounded-xl overflow-hidden glassmorphism relative cursor-pointer transform hover:scale-[1.02] transition-all duration-200"
-      onClick={handleCardClick}
     >
       {/* Status Banner - Show claimed status */}
       {nft.claimed ? (
@@ -148,7 +143,7 @@ export default function NFTCard({ nft }: NFTCardProps) {
           <button 
             onClick={(e) => { 
               e.stopPropagation(); 
-              window.location.href = `/nft/${nft.id}`; 
+              // Now handled by parent component
             }} 
             className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 px-2 py-1 rounded-full text-white hover:from-indigo-600 hover:to-purple-700 transition-colors"
           >
