@@ -15,22 +15,37 @@ interface ClaimNFTsProps {
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const { mintedNfts } = useCreationContext();
   const [email, setEmail] = useState('');
-  const [emailSent, setEmailSent] = useState(false);
+  // Reset emailSent to false to ensure clean state
+  const [emailSent, setEmailSent] = useState<boolean>(false);
+  const [emailConfirmation, setEmailConfirmation] = useState<string | null>(null);
   const { toast } = useToast();
 
   const sendClaimEmailMutation = useMutation({
     mutationFn: async () => {
+      console.log("Send claim email mutation started with NFTs:", mintedNfts);
       const nftIds = mintedNfts.map(nft => nft.id);
-      return apiRequest('POST', '/api/send-claim-email', { nftIds, email });
+      console.log("NFT IDs to claim:", nftIds, "Email:", email);
+      const response = await apiRequest('POST', '/api/send-claim-email', { nftIds, email });
+      console.log("API response:", response);
+      
+      const jsonData = await response.json();
+      console.log("JSON response data:", jsonData);
+      return jsonData;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Mutation successful with data:", data);
+      // Store the email we sent to
+      setEmailConfirmation(email);
+      // Set email sent flag
       setEmailSent(true);
+      
       toast({
         title: "Email sent",
         description: `Claim link sent to ${email}`,
       });
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error sending email",
         description: error.message || "Failed to send claim email. Please try again.",
@@ -40,7 +55,10 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   });
 
   const handleSendEmail = () => {
+    console.log("Send email button clicked with email:", email);
+    
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      console.log("Email validation failed");
       toast({
         title: "Invalid email",
         description: "Please enter a valid email address",
@@ -49,6 +67,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       return;
     }
     
+    console.log("Calling send claim email mutation");
     sendClaimEmailMutation.mutate();
   };
 
@@ -89,6 +108,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="glassmorphism rounded-xl p-4">
             <h4 className="font-heading text-lg font-medium mb-3">Claim via Email</h4>
             <p className="text-sm text-white/70 mb-4">We'll send you a link to claim your NFTs directly to your email.</p>
+            <p className="text-xs text-white/50 mb-1">Debug: emailSent = {emailSent.toString()}</p>
             
             {emailSent ? (
               <div className="flex flex-col items-center justify-center py-4">
