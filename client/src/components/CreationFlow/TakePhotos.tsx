@@ -148,7 +148,7 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
         return prevCount - 1;
       });
     }, 1000);
-  }, [isCameraReady, toast, takePicture]); // Add takePicture as dependency
+  }, [isCameraReady, toast, takePicture]);
 
   const handleTakePhoto = useCallback(() => {
     if (tries <= 0) {
@@ -310,11 +310,19 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
           {photos.length > 0 && (
             <Button 
               className="px-6 py-2 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white"
-              onClick={onNext}
+              onClick={() => {
+                console.log('Next button clicked, navigating to Select Photos');
+                onNext();
+              }}
             >
-              Next: Select Photos <i className="fas fa-arrow-right ml-2"></i>
+              Next: Select Photos →
             </Button>
           )}
+          
+          {/* Debug information */}
+          <div className="absolute bottom-0 left-0 text-xs opacity-50 p-1">
+            Photos: {photos.length} | Camera ready: {isCameraReady ? 'Yes' : 'No'}
+          </div>
         </div>
       </div>
     </div>

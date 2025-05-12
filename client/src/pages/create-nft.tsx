@@ -16,7 +16,7 @@ type Step = 'take-photos' | 'select-photos' | 'choose-template' | 'mint-nfts' | 
 export default function CreateNFT() {
   const [currentStep, setCurrentStep] = useState<Step>('take-photos');
   const [, navigate] = useLocation();
-  const { resetCreationState, selectedPhotos } = useCreationContext();
+  const { resetCreationState, selectedPhotos, photos } = useCreationContext();
   const { toast } = useToast();
 
   // Reset creation state when component unmounts
@@ -27,8 +27,11 @@ export default function CreateNFT() {
   }, [resetCreationState]);
 
   const handleNext = (step: Step) => {
+    console.log(`Navigating to next step: ${step}, current photos:`, photos.length, 'selected photos:', selectedPhotos.length);
+    
     // Validate steps before proceeding
-    if (step === 'select-photos' && selectedPhotos.length === 0) {
+    if (step === 'select-photos' && photos.length === 0) {
+      console.log('Cannot proceed - no photos taken');
       toast({
         title: "No photos taken",
         description: "Please take at least one photo before proceeding",
@@ -37,6 +40,7 @@ export default function CreateNFT() {
       return;
     }
     
+    console.log(`Setting current step to: ${step}`);
     setCurrentStep(step);
   };
 
