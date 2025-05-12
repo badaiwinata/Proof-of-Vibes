@@ -70,6 +70,14 @@ export default function NFTCard({ nft }: NFTCardProps) {
         </div>
       )}
       
+      {/* Edition Badge - Show if this NFT is part of a limited edition */}
+      {nft.editionNumber && nft.editionCount && (
+        <div className="absolute top-24 right-2 z-10 bg-indigo-600/70 text-white text-[10px] px-2 py-0.5 rounded-md flex items-center shadow-sm backdrop-blur-sm">
+          <Award className="h-2.5 w-2.5 mr-1" />
+          Edition {nft.editionNumber}/{nft.editionCount}
+        </div>
+      )}
+      
       {/* Rarity Badge */}
       <div className="absolute top-0 left-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] px-2 py-0.5 rounded-br-md font-medium">
         {rarity.toUpperCase()}

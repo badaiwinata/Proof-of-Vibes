@@ -264,10 +264,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Define recipient interface for better type safety
+  interface Recipient {
+    name?: string;
+    email: string;
+  }
+  
   // Email claim link generation and editioned NFT creation
   app.post("/api/send-claim-email", async (req: Request, res: Response) => {
     try {
-      const { nftIds, recipients = [], copyCount = 1 } = req.body;
+      const { nftIds, recipients = [], copyCount = 1 } = req.body as { 
+        nftIds: number[]; 
+        recipients: Recipient[]; 
+        copyCount: number;
+      };
       
       if (!nftIds || !Array.isArray(nftIds) || nftIds.length === 0) {
         return res.status(400).json({ message: "Digital collectible IDs are required" });
@@ -289,7 +299,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // For each original NFT (typically just one in the photobooth case)
       for (const id of nftIds) {
-        const originalNft = await storage.getNft(parseInt(id));
+        // Ensure we have a valid number for the ID
+        const originalNft = await storage.getNft(typeof id === 'string' ? parseInt(id) : id);
         
         if (!originalNft) continue;
         
@@ -358,8 +369,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let message;
       if (recipients.length > 0) {
         const emailAddresses = recipients
-          .filter(r => r.email)
-          .map(r => r.email)
+          .filter((r: Recipient) => r.email)
+          .map((r: Recipient) => r.email)
           .join(', ');
         
         message = emailAddresses
