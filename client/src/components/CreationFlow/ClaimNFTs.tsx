@@ -6,24 +6,28 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { QRCode } from 'react-qrcode-logo';
-import { Check, Eye, Sparkles, Share2, Award, Mail, QrCode, SmartphoneNfc } from 'lucide-react';
+import { Check, Eye, Sparkles, Share2, Award, Mail, QrCode, SmartphoneNfc, Plus, X, Users } from 'lucide-react';
 import { Link } from 'wouter';
 import NFTPreviewModal from '@/components/NFTPreviewModal';
+import { Badge } from '@/components/ui/badge';
 
 interface ClaimNFTsProps {
   onFinish: () => void;
 }
 
+interface Recipient {
+  name: string;
+  email: string;
+  error?: string;
+}
+
 export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const { mintedNfts } = useCreationContext();
-  const [email, setEmail] = useState('');
+  const [recipients, setRecipients] = useState<Recipient[]>([{ name: '', email: '' }]);
   const [emailSent, setEmailSent] = useState<boolean>(false);
-  const [emailConfirmation, setEmailConfirmation] = useState<string | null>(null);
-  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailsConfirmation, setEmailsConfirmation] = useState<string[]>([]);
   const [previewNft, setPreviewNft] = useState<number | null>(null);
   const { toast } = useToast();
-
-  const [recipientName, setRecipientName] = useState('');
   
   const sendClaimEmailMutation = useMutation({
     mutationFn: async () => {
