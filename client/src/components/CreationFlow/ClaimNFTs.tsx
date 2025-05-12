@@ -1,0 +1,166 @@
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { useCreationContext } from '@/context/CreationContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { QRCode } from 'react-qrcode-logo';
+import { Check } from 'lucide-react';
+
+interface ClaimNFTsProps {
+  onFinish: () => void;
+}
+
+export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
+  const { mintedNfts } = useCreationContext();
+  const [email, setEmail] = useState('');
+  const { toast } = useToast();
+
+  const sendClaimEmailMutation = useMutation({
+    mutationFn: async () => {
+      const nftIds = mintedNfts.map(nft => nft.id);
+      return apiRequest('POST', '/api/send-claim-email', { nftIds, email });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email sent",
+        description: `Claim link sent to ${email}`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error sending email",
+        description: error.message || "Failed to send claim email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSendEmail = () => {
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    sendClaimEmailMutation.mutate();
+  };
+
+  const generateClaimUrl = () => {
+    // In a real app, this would be a real claim link with token
+    const claimToken = mintedNfts[0]?.claimToken || 'sample-token';
+    return `${window.location.origin}/claim/${claimToken}`;
+  };
+
+  const handleDownloadQR = () => {
+    // This is a simple example - in production you'd use a proper QR library with download capability
+    const canvas = document.getElementById('claim-qr-code')?.querySelector('canvas');
+    if (!canvas) return;
+    
+    const link = document.createElement('a');
+    link.download = 'proof-of-vibes-claim.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  return (
+    <div className="step-content">
+      <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
+        <h2 className="font-heading text-2xl font-bold mb-4 text-center">Claim Your NFTs</h2>
+        <p className="text-center mb-6 text-white/70">Your NFTs have been minted successfully! Claim them now.</p>
+        
+        <div className="flex flex-col items-center justify-center mb-8">
+          <div className="w-24 h-24 rounded-full bg-green-500/20 flex items-center justify-center mb-4">
+            <Check className="text-green-500 w-12 h-12" />
+          </div>
+          <h3 className="font-heading text-xl font-bold mb-2">Minting Complete!</h3>
+          <p className="text-center text-white/70 max-w-md">Your {mintedNfts.length} NFTs have been successfully minted on the Solana blockchain.</p>
+        </div>
+        
+        {/* Claim Options */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Email Claim */}
+          <div className="glassmorphism rounded-xl p-4">
+            <h4 className="font-heading text-lg font-medium mb-3">Claim via Email</h4>
+            <p className="text-sm text-white/70 mb-4">We'll send you a link to claim your NFTs directly to your email.</p>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Your Email</label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full px-4 py-2 bg-[#1A1A2E] border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            
+            <Button 
+              className="w-full px-4 py-2 bg-primary hover:bg-primary/90 rounded-full font-bold text-white transition-colors"
+              onClick={handleSendEmail}
+              disabled={sendClaimEmailMutation.isPending}
+            >
+              {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
+            </Button>
+          </div>
+          
+          {/* QR Code Claim */}
+          <div className="glassmorphism rounded-xl p-4">
+            <h4 className="font-heading text-lg font-medium mb-3">Claim via QR Code</h4>
+            <p className="text-sm text-white/70 mb-4">Scan this QR code with your phone to claim your NFTs instantly.</p>
+            
+            <div className="flex justify-center mb-4" id="claim-qr-code">
+              <div className="w-40 h-40 bg-white p-2 rounded-lg">
+                <QRCode
+                  value={generateClaimUrl()}
+                  size={152}
+                  qrStyle="dots"
+                  eyeRadius={8}
+                  bgColor="#ffffff"
+                  fgColor="#1A1A2E"
+                />
+              </div>
+            </div>
+            
+            <Button 
+              variant="outline"
+              className="w-full px-4 py-2 border border-white/20 hover:bg-white/10 rounded-full font-medium text-white transition-colors"
+              onClick={handleDownloadQR}
+            >
+              Download QR Code
+            </Button>
+          </div>
+        </div>
+        
+        {/* Collection Preview */}
+        <div className="mb-6">
+          <h4 className="font-heading text-lg font-medium mb-3">Your NFT Collection</h4>
+          <div className="flex overflow-x-auto pb-4 space-x-3">
+            {mintedNfts.map((nft, index) => (
+              <div key={index} className="flex-shrink-0 w-32 aspect-[3/4] rounded-lg overflow-hidden">
+                <img 
+                  src={nft.imageUrl} 
+                  alt={`Minted NFT ${index + 1}`} 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="flex justify-center mt-8">
+          <Button 
+            className="px-8 py-3 bg-green-500 hover:bg-green-600 rounded-full font-bold text-white transition-colors"
+            onClick={onFinish}
+          >
+            <i className="fas fa-check mr-2"></i> Done
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
