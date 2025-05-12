@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronDown, RefreshCw, LayoutGrid, ChevronRight, LayoutList } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 import type { Nft } from '@shared/schema';
 
 export default function Gallery() {
@@ -20,8 +21,9 @@ export default function Gallery() {
   const [selectedNft, setSelectedNft] = useState<Nft | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
+  const { toast } = useToast();
   
-  const { data, isLoading, error, refetch } = useQuery<{ nfts: Nft[] }>({
+  const { data, isLoading, error, refetch, isFetching } = useQuery<{ nfts: Nft[] }>({
     queryKey: ['/api/nfts'],
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -51,6 +53,17 @@ export default function Gallery() {
 
   const handleCreateClick = () => {
     navigate('/create');
+  };
+  
+  const handleRefresh = () => {
+    refetch().then(() => {
+      toast({
+        title: "Gallery refreshed",
+        description: "The latest collectibles have been loaded",
+        variant: "default",
+        duration: 2000
+      });
+    });
   };
   
   // Sorting logic
@@ -140,11 +153,12 @@ export default function Gallery() {
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-white/70 hover:text-white hover:bg-white/10 rounded-full h-8 w-8 p-0"
-                onClick={() => refetch()}
-                title="Refresh gallery"
+                className={`text-white/70 hover:text-white hover:bg-white/10 rounded-full h-8 w-8 p-0 ${isFetching ? 'bg-white/10' : ''}`}
+                onClick={handleRefresh}
+                title={isFetching ? "Refreshing..." : "Refresh gallery"}
+                disabled={isFetching}
               >
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin text-purple-400' : ''}`} />
               </Button>
             </div>
             <div className="flex items-center gap-4">
@@ -201,7 +215,7 @@ export default function Gallery() {
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-destructive mb-4">Failed to load NFTs. Please try again.</p>
-              <Button onClick={() => refetch()}>Retry</Button>
+              <Button onClick={handleRefresh}>Retry</Button>
             </div>
           ) : (
             <>
