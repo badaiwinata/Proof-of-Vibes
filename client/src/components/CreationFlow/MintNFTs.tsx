@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCreationContext } from '@/context/CreationContext';
 import { useSolana } from '@/hooks/useSolana';
@@ -33,7 +33,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         vibes: templateSelection.vibes,
         userId: 1, // In a real app, would be the actual user ID
       }));
-
+      
       const response = await apiRequest('POST', '/api/mint', { nfts: nftsToMint });
       const data = await response.json();
       return data;
@@ -53,15 +53,22 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     }
   });
 
-  // Remove wallet dependency since minting happens on backend
   const handleStartMinting = () => {
-
+    if (!connected) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to mint NFTs",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setMintStatus('Preparing to mint...');
     setMintProgress(10);
-
+    
     // Start minting process
     mintNftsMutation.mutate();
-
+    
     // Simulate minting progress
     simulateMintingProgress();
   };
@@ -72,14 +79,14 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     const interval = setInterval(() => {
       progress += 5;
       setMintProgress(progress);
-
+      
       // Calculate when each NFT should be shown as minted based on progress and number of NFTs
       const progressSteps = photoCount === 1 
         ? [60] // Only 1 NFT: show at 60% progress
         : photoCount === 2 
           ? [40, 80] // 2 NFTs: show at 40% and 80% progress
           : [40, 70, 90]; // 3 NFTs: show at 40%, 70%, and 90% progress
-
+      
       // Update status text based on progress
       if (progress <= 30) {
         setMintStatus('Preparing metadata...');
@@ -102,23 +109,23 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           setMintedPhotos(prev => [...prev, 2]);
         }
       }
-
+      
       if (progress >= 100) {
         clearInterval(interval);
       }
     }, 500);
-
+    
     // Store interval ID for cleanup
     return () => clearInterval(interval);
   };
 
   return (
-    <Fragment>
+    <>
       <div className="step-content">
         <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
           <h2 className="font-heading text-2xl font-bold mb-4 text-center">Mint Your Unique NFTs</h2>
           <p className="text-center mb-6 text-white/70">Your photos will be minted as NFTs on the Solana blockchain</p>
-
+          
           {/* NFT Preview Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {selectedPhotos.map((photo, index) => (
@@ -136,7 +143,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                   alt={`NFT Preview ${index + 1}`} 
                   className="w-full h-full object-cover" 
                 />
-
+                
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#1A1A2E] to-transparent">
                     <div className="flex gap-2 mb-2">
@@ -147,7 +154,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                     <p className="text-sm font-medium">"{templateSelection.message}"</p>
                   </div>
                 </div>
-
+                
                 {mintedPhotos.includes(index) && (
                   <>
                     <div className="absolute top-2 right-2 bg-green-500/80 px-2 py-1 rounded text-xs">
@@ -163,7 +170,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               </div>
             ))}
           </div>
-
+          
           {!connected ? (
             /* Wallet Connection Prompt */
             <div className="bg-[#1A1A2E] border border-white/20 rounded-lg p-4 mb-6">
@@ -187,7 +194,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                 </div>
                 <p className="font-bold">{(0.01 * selectedPhotos.length).toFixed(2)} SOL</p>
               </div>
-
+              
               <div className="flex justify-center">
                 <Button
                   className={`relative px-8 py-3 ${
@@ -212,7 +219,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                   )}
                 </Button>
               </div>
-
+              
               {/* Minting Progress */}
               {mintProgress > 0 && (
                 <div className="mt-4">
@@ -229,7 +236,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               )}
             </div>
           )}
-
+          
           {/* Preview Button - Only show when minting is complete */}
           {mintProgress === 100 && (
             <div className="mt-6 flex justify-center">
@@ -243,7 +250,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               </Link>
             </div>
           )}
-
+          
           <div className="mt-6 flex justify-between">
             <Button 
               variant="outline"
@@ -252,7 +259,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             >
               ← Back
             </Button>
-
+            
             <Button 
               className={`px-6 py-2 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white ${
                 mintProgress === 100 ? '' : 'opacity-50 cursor-not-allowed'
@@ -273,4 +280,6 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           onClose={() => setPreviewNft(null)}
         />
       )}
-    </Fragment>
+    </>
+  );
+}

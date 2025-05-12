@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useCreationContext } from '@/context/CreationContext';
 import { Button } from '@/components/ui/button';
@@ -179,7 +179,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   };
 
   return (
-    <Fragment>
+    <>
       <div className="step-content">
         <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
           <h2 className="font-heading text-2xl font-bold mb-4 text-center">Claim Your NFTs</h2>
@@ -230,7 +230,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           </div>
           
           {/* Collection Preview */}
-          <div className="mb-6">
+          <div className="mt-8 mb-6">
             <h4 className="font-heading text-lg font-medium mb-3">Your NFT Collection</h4>
             <div className="flex overflow-x-auto pb-4 space-x-3">
               {mintedNfts.map((nft, index) => (
@@ -278,6 +278,6 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           onClose={() => setPreviewNft(null)}
         />
       )}
-    </Fragment>
+    </>
   );
 }
