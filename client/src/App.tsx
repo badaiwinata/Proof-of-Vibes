@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Gallery from "@/pages/gallery";
 import CreateNFT from "@/pages/create-nft";
+import NFTDetailPage from "@/pages/nft-detail";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
@@ -18,6 +19,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Gallery} />
         <Route path="/create" component={CreateNFT} />
+        <Route path="/nft/:id" component={NFTDetailPage} />
         <Route component={NotFound} />
       </Switch>
     </CreationProvider>

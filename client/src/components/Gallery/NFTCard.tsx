@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'wouter';
-import { Award, CheckCircle2, Clock, Sparkles, Diamond, Hash, User, CreditCard } from 'lucide-react';
+import { Award, CheckCircle2, Clock, Sparkles, Diamond, Hash, User, CreditCard, Eye, LayoutGrid } from 'lucide-react';
 import type { Nft } from '@shared/schema';
 import { Badge } from '@/components/ui/badge';
 
@@ -43,8 +43,17 @@ export default function NFTCard({ nft }: NFTCardProps) {
   // Creator name from event info or default
   const creatorName = "Proof of Vibes";
   
+  // Function to handle card click
+  const handleCardClick = () => {
+    // Navigate to NFT detail page
+    window.location.href = `/nft/${nft.id}`;
+  };
+
   return (
-    <div className="nft-card rounded-xl overflow-hidden glassmorphism relative">
+    <div 
+      className="nft-card rounded-xl overflow-hidden glassmorphism relative cursor-pointer transform hover:scale-[1.02] transition-all duration-200"
+      onClick={handleCardClick}
+    >
       {/* Status Banner - Show claimed status */}
       {nft.claimed ? (
         <div className="absolute top-2 right-2 z-10 bg-emerald-500/80 text-white text-xs font-medium py-1 px-2 rounded-full flex items-center shadow-lg">
@@ -55,6 +64,14 @@ export default function NFTCard({ nft }: NFTCardProps) {
         <div className="absolute top-2 right-2 z-10 bg-indigo-500/80 text-white text-xs font-medium py-1 px-2 rounded-full flex items-center shadow-lg">
           <Award className="h-3 w-3 mr-1" />
           Certified
+        </div>
+      )}
+      
+      {/* Collection ID - Show if this NFT is part of a batch */}
+      {nft.collectionId && (
+        <div className="absolute top-12 right-2 z-10 bg-purple-600/70 text-white text-[10px] px-2 py-0.5 rounded-md flex items-center shadow-sm backdrop-blur-sm">
+          <LayoutGrid className="h-2.5 w-2.5 mr-1" />
+          Collection #{nft.collectionId}
         </div>
       )}
       
@@ -128,9 +145,23 @@ export default function NFTCard({ nft }: NFTCardProps) {
             {rarity}
           </Badge>
           
-          <Link href={`/nft/${nft.id}`} className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 px-2 py-1 rounded-full text-white hover:from-indigo-600 hover:to-purple-700 transition-colors">
+          <button 
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              window.location.href = `/nft/${nft.id}`; 
+            }} 
+            className="text-xs bg-gradient-to-r from-indigo-500 to-purple-600 px-2 py-1 rounded-full text-white hover:from-indigo-600 hover:to-purple-700 transition-colors"
+          >
             View Certificate
-          </Link>
+          </button>
+        </div>
+      </div>
+      
+      {/* Overlay on hover */}
+      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+        <div className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white font-medium flex items-center">
+          <Eye className="h-4 w-4 mr-2" />
+          View Details
         </div>
       </div>
     </div>
