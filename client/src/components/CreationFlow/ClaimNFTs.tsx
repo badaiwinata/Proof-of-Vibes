@@ -108,10 +108,10 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="glassmorphism rounded-xl p-4">
             <h4 className="font-heading text-lg font-medium mb-3">Claim via Email</h4>
             <p className="text-sm text-white/70 mb-4">We'll send you a link to claim your NFTs directly to your email.</p>
-            <p className="text-xs text-white/50 mb-1">Debug: emailSent = {emailSent.toString()}</p>
             
-            {emailSent ? (
-              <div className="flex flex-col items-center justify-center py-4">
+            {emailConfirmation ? (
+              // Confirmed email sent UI
+              <div className="flex flex-col items-center justify-center py-4 bg-[#1A1A2E]/50 rounded-lg">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mb-3">
                   <Check className="text-green-500 w-6 h-6" />
                 </div>
@@ -119,17 +119,21 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 <p className="text-sm text-white/70 text-center mb-2">
                   Claim link has been sent to:
                 </p>
-                <p className="font-medium text-white mb-3">{email}</p>
+                <p className="font-medium text-white mb-3">{emailConfirmation}</p>
                 <Button
                   variant="outline"
                   className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded-full text-sm"
-                  onClick={() => setEmailSent(false)}
+                  onClick={() => {
+                    setEmailConfirmation(null);
+                    setEmailSent(false);
+                  }}
                 >
                   Send to another email
                 </Button>
               </div>
             ) : (
-              <>
+              // Email input UI
+              <div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">Your Email</label>
                   <Input
@@ -148,7 +152,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 >
                   {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
                 </Button>
-              </>
+              </div>
             )}
           </div>
           
