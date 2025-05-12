@@ -99,9 +99,23 @@ export class MemStorage implements IStorage {
     const nft: Nft = { 
       ...insertNft, 
       id, 
-      claimed: false,
-      claimToken,
-      createdAt: now
+      userId: insertNft.userId || null,
+      message: insertNft.message || null,
+      imageUrl: insertNft.imageUrl,
+      template: insertNft.template,
+      vibes: insertNft.vibes,
+      mintAddress: insertNft.mintAddress || null,
+      claimed: insertNft.claimed === true || false,
+      claimToken: claimToken,
+      claimEmail: insertNft.claimEmail || null,
+      claimedAt: insertNft.claimedAt || null,
+      recipientName: insertNft.recipientName || null,
+      eventName: insertNft.eventName || "Proof of Vibes",
+      eventDate: insertNft.eventDate || null,
+      certificateId: insertNft.certificateId || null,
+      collectionId: insertNft.collectionId || null,
+      createdAt: now,
+      metadata: insertNft.metadata || null
     };
     
     this.nfts.set(id, nft);
@@ -139,8 +153,10 @@ export class MemStorage implements IStorage {
     const now = new Date();
     
     const photo: Photo = { 
-      ...insertPhoto, 
       id,
+      userId: insertPhoto.userId || null,
+      sessionId: insertPhoto.sessionId,
+      imageData: insertPhoto.imageData,
       createdAt: now
     };
     
