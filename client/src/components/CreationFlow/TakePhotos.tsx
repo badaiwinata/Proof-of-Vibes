@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useCamera } from '@/hooks/useCamera';
 import { useCreationContext } from '@/context/CreationContext';
 import { Button } from '@/components/ui/button';
@@ -53,8 +53,11 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
 
   const handleStartCamera = useCallback(async () => {
     try {
+      console.log('Initializing camera...');
       await initializeCamera();
+      console.log('Camera initialized successfully');
     } catch (error) {
+      console.error('Camera initialization error:', error);
       toast({
         title: "Camera error",
         description: "Failed to access your camera. Please check your permissions.",
@@ -63,45 +66,80 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
     }
   }, [initializeCamera, toast]);
 
-  const startCountdown = useCallback(() => {
-    setCountdown(3);
-    
-    countdownRef.current = setInterval(() => {
-      setCountdown((prevCount) => {
-        if (prevCount === null || prevCount <= 1) {
-          if (countdownRef.current) {
-            clearInterval(countdownRef.current);
-          }
-          // Take the photo when countdown reaches 0
-          capturePhoto();
-          return null;
-        }
-        return prevCount - 1;
+  // Define takePicture function before it's used
+  const takePicture = async () => {
+    console.log('Taking picture, camera ready:', isCameraReady);
+    if (!isCameraReady) {
+      console.log('Camera not ready, aborting photo capture');
+      toast({
+        title: "Camera not ready",
+        description: "Please make sure camera is initialized before taking a photo.",
+        variant: "destructive",
       });
-    }, 1000);
-  }, []);
-
-  const capturePhoto = useCallback(async () => {
-    if (!isCameraReady) return;
+      return;
+    }
     
     // Activate flash effect
     setFlashActive(true);
     setTimeout(() => setFlashActive(false), 150);
     
-    // Take photo
-    const photoData = await takePhoto();
-    
-    if (photoData) {
-      // Add to context
-      addPhoto(photoData);
+    try {
+      // Take photo
+      console.log('Taking photo with camera');
+      const photoData = await takePhoto();
+      console.log('Photo taken:', photoData ? 'success' : 'failed');
       
-      // Save to backend
-      savePhotoMutation.mutate(photoData);
-      
-      // Decrease tries
-      setTries((prev) => prev - 1);
+      if (photoData) {
+        // Add to context
+        console.log('Adding photo to context');
+        addPhoto(photoData);
+        
+        // Save to backend
+        console.log('Saving photo to backend');
+        savePhotoMutation.mutate(photoData);
+        
+        // Decrease tries
+        setTries((prev) => prev - 1);
+        console.log('Decreased tries');
+      } else {
+        console.log('No photo data returned');
+        toast({
+          title: "Failed to capture photo",
+          description: "Camera returned no data. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error in takePicture:', error);
+      toast({
+        title: "Photo error",
+        description: "An error occurred while taking the photo. Please try again.",
+        variant: "destructive",
+      });
     }
-  }, [isCameraReady, takePhoto, addPhoto, savePhotoMutation]);
+  };
+
+  // Start countdown and take photo when it reaches zero
+  const startCountdown = useCallback(() => {
+    console.log('Starting countdown');
+    setCountdown(3);
+    
+    countdownRef.current = setInterval(() => {
+      setCountdown((prevCount) => {
+        console.log('Countdown:', prevCount);
+        if (prevCount === null || prevCount <= 1) {
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+          }
+          console.log('Countdown finished, taking photo');
+          // Take the photo when countdown reaches 0
+          setTimeout(() => takePicture(), 0);
+          return null;
+        }
+        return prevCount - 1;
+      });
+    }, 1000);
+  }, []); // No dependencies since takePicture is not wrapped in useCallback
 
   const handleTakePhoto = useCallback(() => {
     if (tries <= 0) {
@@ -123,6 +161,13 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
     }
     stopCamera();
   }, [stopCamera]);
+  
+  // Cleanup when component unmounts
+  useEffect(() => {
+    return () => {
+      cleanupCamera();
+    };
+  }, [cleanupCamera]);
 
   return (
     <div className="step-content">
