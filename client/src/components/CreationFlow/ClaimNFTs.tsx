@@ -18,6 +18,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   // Reset emailSent to false to ensure clean state
   const [emailSent, setEmailSent] = useState<boolean>(false);
   const [emailConfirmation, setEmailConfirmation] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const sendClaimEmailMutation = useMutation({
@@ -57,8 +58,19 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   const handleSendEmail = () => {
     console.log("Send email button clicked with email:", email);
     
-    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
-      console.log("Email validation failed");
+    // Validate email format
+    if (!email) {
+      setEmailError('Email is required');
+      toast({
+        title: "Email required",
+        description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError('Please enter a valid email address');
       toast({
         title: "Invalid email",
         description: "Please enter a valid email address",
@@ -67,6 +79,8 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       return;
     }
     
+    // Clear any errors and send
+    setEmailError(null);
     console.log("Calling send claim email mutation");
     sendClaimEmailMutation.mutate();
   };
@@ -139,16 +153,37 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                   <Input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      const newEmail = e.target.value;
+                      setEmail(newEmail);
+                      
+                      // Validate email format when there's input
+                      if (newEmail && !/^\S+@\S+\.\S+$/.test(newEmail)) {
+                        setEmailError('Please enter a valid email address');
+                      } else {
+                        setEmailError(null);
+                      }
+                    }}
                     placeholder="your@email.com"
-                    className="w-full px-4 py-2 bg-[#1A1A2E] border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    className={`w-full px-4 py-2 bg-[#1A1A2E] border ${
+                      emailError ? 'border-red-500' : 'border-white/20'
+                    } rounded-lg focus:outline-none focus:ring-2 ${
+                      emailError ? 'focus:ring-red-500' : 'focus:ring-primary'
+                    }`}
                   />
+                  {emailError && (
+                    <p className="mt-2 text-sm text-red-500">{emailError}</p>
+                  )}
                 </div>
                 
                 <Button 
-                  className="w-full px-4 py-2 bg-primary hover:bg-primary/90 rounded-full font-bold text-white transition-colors"
+                  className={`w-full px-4 py-2 rounded-full font-bold text-white transition-colors ${
+                    emailError || !email
+                      ? 'bg-primary/50 cursor-not-allowed'
+                      : 'bg-primary hover:bg-primary/90'
+                  }`}
                   onClick={handleSendEmail}
-                  disabled={sendClaimEmailMutation.isPending}
+                  disabled={!!emailError || !email || sendClaimEmailMutation.isPending}
                 >
                   {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
                 </Button>
