@@ -3,9 +3,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useCreationContext } from '@/context/CreationContext';
 import { useSolana } from '@/hooks/useSolana';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { LoaderPinwheel, Eye, Sparkles, CheckCircle, Award, Scroll } from 'lucide-react';
+import { LoaderPinwheel, Eye, Sparkles, CheckCircle, Award, Scroll, Copy, Users } from 'lucide-react';
 import { Link } from 'wouter';
 import NFTPreviewModal from '@/components/NFTPreviewModal';
 
@@ -13,6 +14,9 @@ interface MintNFTsProps {
   onNext: () => void;
   onBack: () => void;
 }
+
+// Pre-defined copy count options
+const COPY_OPTIONS = [1, 2, 4, 6, 10];
 
 export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   const { selectedPhotos, templateSelection, setMintedNfts, mintedNfts } = useCreationContext();
@@ -22,11 +26,14 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   const [mintedPhotos, setMintedPhotos] = useState<number[]>([]);
   const [previewNft, setPreviewNft] = useState<number | null>(null);
   const [autoMintStarted, setAutoMintStarted] = useState(false);
+  const [copyCount, setCopyCount] = useState<number>(1);
+  const [customCopyCount, setCustomCopyCount] = useState<string>('');
+  const [showCustomCount, setShowCustomCount] = useState<boolean>(false);
   const { toast } = useToast();
 
   const mintNftsMutation = useMutation({
     mutationFn: async () => {
-      console.log("Starting mint mutation with selected photos:", selectedPhotos.length);
+      console.log("Starting mint mutation with selected photos:", selectedPhotos.length, "and copy count:", copyCount);
       
       // Prepare collectible data with event information
       const nftsToMint = selectedPhotos.map(photoUrl => ({
@@ -42,7 +49,10 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       console.log("Preparing to mint collectibles:", nftsToMint);
       
       try {
-        const response = await apiRequest('POST', '/api/mint', { nfts: nftsToMint });
+        const response = await apiRequest('POST', '/api/mint', { 
+          nfts: nftsToMint,
+          copyCount: copyCount // Include the number of copies to create
+        });
         const data = await response.json();
         console.log("Mint API response:", data);
         return data;
@@ -97,10 +107,26 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     }
   });
 
-  // Auto-start minting when component loads after a small delay
+  // Functions to handle copy count selection
+  const handleCopyCountChange = (count: number) => {
+    setCopyCount(count);
+    setShowCustomCount(false);
+  };
+  
+  const handleCustomCountChange = (value: string) => {
+    setCustomCopyCount(value);
+    
+    // Update the actual copy count if the value is a valid number
+    const numValue = parseInt(value);
+    if (!isNaN(numValue) && numValue > 0 && numValue <= 50) {
+      setCopyCount(numValue);
+    }
+  };
+
+  // Only start auto-minting if user has selected copy count
   useEffect(() => {
-    // Return early if we've already started the process
-    if (autoMintStarted) return;
+    // Return early if we've already started the process or no copy count
+    if (autoMintStarted || copyCount < 1) return;
     
     console.log("Auto-mint effect triggered, connected:", connected);
     
@@ -114,11 +140,21 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     }, 1500);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [copyCount]); // Depend on copyCount instead of mounting
 
   // Handle manual button click to start minting
   const handleStartMinting = () => {
-    console.log("HandleStartMinting called");
+    // Validate copy count
+    if (copyCount < 1 || copyCount > 50) {
+      toast({
+        title: "Invalid copy count",
+        description: "Please select between 1 and 50 copies.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log("HandleStartMinting called with copy count:", copyCount);
     setMintStatus('Creating your digital collectibles...');
     setMintProgress(10);
     
@@ -307,42 +343,104 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             ))}
           </div>
           
-          {/* Creation Status and Info */}
-          <div className="text-center bg-[#1A1A2E] border border-purple-500/30 rounded-lg p-5 mb-6">
-            <div className="flex items-center justify-center gap-2 mb-3">
-              {mintProgress < 100 ? (
-                <div className="animate-spin h-5 w-5 text-purple-400">
-                  <LoaderPinwheel className="h-5 w-5" />
-                </div>
-              ) : (
-                <CheckCircle className="h-5 w-5 text-green-400" />
-              )}
-              <p className="font-medium">
-                {mintProgress < 100 
-                  ? "Creating your certified digital collectibles..." 
-                  : "Your collectibles are ready for claiming!"}
-              </p>
-            </div>
-            
-            <p className="text-sm text-white/70 mb-4 max-w-lg mx-auto">
-              {mintProgress < 100
-                ? "Please wait while we prepare your personalized digital memorabilia with certificate of authenticity."
-                : "Your exclusive event memorabilia has been created and is ready to be claimed."}
-            </p>
-            
-            {/* Creation Progress */}
-            <div className="mt-4">
-              <div className="w-full bg-black/30 rounded-full h-2.5 mb-2">
-                <div 
-                  className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
-                  style={{ width: `${mintProgress}%` }}
-                ></div>
+          {/* Copy Count Selection (Only show before minting starts) */}
+          {mintProgress === 0 && (
+            <div className="mb-6 bg-[#1A1A2E] border border-indigo-500/30 rounded-lg p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="h-5 w-5 text-indigo-400" />
+                <h3 className="font-medium text-lg">How many copies do you need?</h3>
               </div>
-              <p className="text-sm text-center text-white/70 font-medium">
-                {mintStatus}
+              
+              <p className="text-sm text-white/70 mb-4">
+                Perfect for group photos! Choose how many copies of your photo to create.
+                Each person in the group can claim their own unique copy.
               </p>
+              
+              <div className="grid grid-cols-5 gap-2 mb-3">
+                {COPY_OPTIONS.map(count => (
+                  <Button
+                    key={count}
+                    type="button"
+                    variant={copyCount === count && !showCustomCount ? "default" : "outline"}
+                    className={`h-12 ${copyCount === count && !showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
+                    onClick={() => handleCopyCountChange(count)}
+                  >
+                    {count}
+                  </Button>
+                ))}
+              </div>
+              
+              <div className="flex items-center gap-2 mt-3">
+                <Button
+                  type="button"
+                  variant={showCustomCount ? "default" : "outline"}
+                  className={`h-10 ${showCustomCount ? 'bg-primary text-white' : 'bg-transparent border-white/30 text-white'}`}
+                  onClick={() => setShowCustomCount(true)}
+                >
+                  Custom
+                </Button>
+                
+                {showCustomCount && (
+                  <Input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={customCopyCount}
+                    onChange={(e) => handleCustomCountChange(e.target.value)}
+                    placeholder="Enter count (1-50)"
+                    className="w-40 bg-black/20 border border-white/20 rounded-lg"
+                  />
+                )}
+              </div>
+              
+              <Button
+                className="w-full mt-4 px-4 py-3 rounded-lg font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700"
+                onClick={handleStartMinting}
+                disabled={copyCount < 1 || copyCount > 50}
+              >
+                Create {copyCount} {copyCount === 1 ? 'Copy' : 'Copies'}
+              </Button>
             </div>
-          </div>
+          )}
+          
+          {/* Creation Status and Info (Only show when minting is in progress or complete) */}
+          {mintProgress > 0 && (
+            <div className="text-center bg-[#1A1A2E] border border-purple-500/30 rounded-lg p-5 mb-6">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                {mintProgress < 100 ? (
+                  <div className="animate-spin h-5 w-5 text-purple-400">
+                    <LoaderPinwheel className="h-5 w-5" />
+                  </div>
+                ) : (
+                  <CheckCircle className="h-5 w-5 text-green-400" />
+                )}
+                <p className="font-medium">
+                  {mintProgress < 100 
+                    ? `Creating ${copyCount} certified digital collectible${copyCount > 1 ? 's' : ''}...` 
+                    : `Your ${copyCount} collectible${copyCount > 1 ? 's are' : ' is'} ready for claiming!`}
+                </p>
+              </div>
+              
+              <p className="text-sm text-white/70 mb-4 max-w-lg mx-auto">
+                {mintProgress < 100
+                  ? "Please wait while we prepare your personalized digital memorabilia with certificate of authenticity."
+                  : "Your exclusive event memorabilia has been created and is ready to be claimed."}
+              </p>
+              
+              {/* Creation Progress */}
+              <div className="mt-4">
+                <div className="w-full bg-black/30 rounded-full h-2.5 mb-2">
+                  <div 
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-300 ease-in-out" 
+                    style={{ width: `${mintProgress}%` }}
+                  ></div>
+                </div>
+                <p className="text-sm text-center text-white/70 font-medium">
+                  {mintStatus}
+                </p>
+              </div>
+            </div>
+          )}
           
           {/* Preview Button - Only show when creation is complete */}
           {mintProgress === 100 && (
