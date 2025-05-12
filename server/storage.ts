@@ -60,7 +60,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      email: insertUser.email || null,
+      solanaWallet: insertUser.solanaWallet || null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -162,19 +167,34 @@ export class MemStorage implements IStorage {
       "Best night ever!", 
       "Squad goals achieved!", 
       "Mind = blown!", 
-      "Neon dreams!"
+      "Neon dreams!",
+      "Epic adventure!",
+      "Memories made!",
+      "VIP experience!",
+      "Dance all night!",
+      "Forever vibes!"
     ];
     const vibeTags = [
       ['excited', 'music'], 
       ['friends', 'memories'], 
       ['tech', 'future'], 
-      ['glow', 'party']
+      ['glow', 'party'],
+      ['adventure', 'experience'],
+      ['celebration', 'fun'],
+      ['vip', 'exclusive'],
+      ['dance', 'nightlife'],
+      ['forever', 'moments']
     ];
     const imageUrls = [
       'https://images.unsplash.com/photo-1601288496920-b6154fe3626a',
       'https://images.unsplash.com/photo-1529156069898-49953e39b3ac',
       'https://images.unsplash.com/photo-1617802690992-15d93263d3a9',
-      'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9'
+      'https://images.unsplash.com/photo-1541546006121-5c3bc5e8c7b9',
+      'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3',
+      'https://images.unsplash.com/photo-1496024840928-4c417adf211d',
+      'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f',
+      'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7',
+      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819'
     ];
     
     // Create a sample user if needed
@@ -182,15 +202,21 @@ export class MemStorage implements IStorage {
     const user: User = { 
       id: userId,
       username: "event_visitor",
-      password: "hashed_password"
+      password: "hashed_password",
+      email: null,
+      solanaWallet: null
     };
     this.users.set(userId, user);
     
     // Create sample NFTs
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 9; i++) {
       const id = this.nftIdCounter++;
-      const minutesAgo = [10, 25, 42, 60][i];
+      // Generate random times for the NFTs (5-120 minutes ago)
+      const minutesAgo = Math.floor(5 + Math.random() * 115);
       const createdAt = new Date(Date.now() - minutesAgo * 60 * 1000);
+      
+      // Add collection grouping - every 3 NFTs belong to the same collection
+      const collectionId = `event-${Math.floor(i/3) + 1}`;
       
       const nft: Nft = {
         id,
@@ -199,10 +225,18 @@ export class MemStorage implements IStorage {
         message: messages[i],
         template: templates[i % templates.length],
         vibes: vibeTags[i],
-        claimed: false,
+        claimed: i % 3 === 0, // Make every third NFT claimed
         claimToken: uuidv4(),
         createdAt,
-        mintAddress: `sample${i}MintAddress`
+        mintAddress: `sample${i}MintAddress`,
+        collectionId: collectionId,
+        eventName: i < 3 ? "VIP Night" : i < 6 ? "Tech Conference" : "Music Festival",
+        claimEmail: null,
+        claimedAt: i % 3 === 0 ? new Date(Date.now() - Math.floor(Math.random() * 60) * 60 * 1000) : null,
+        recipientName: i % 3 === 0 ? "Event Attendee" : null,
+        eventDate: new Date().toLocaleDateString(),
+        certificateId: `POV-${id}-${Date.now().toString().slice(-6)}`,
+        metadata: null
       };
       
       this.nfts.set(id, nft);
