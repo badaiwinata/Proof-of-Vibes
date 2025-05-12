@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { QRCode } from 'react-qrcode-logo';
-import { Check, Eye } from 'lucide-react';
+import { Check, Eye, Sparkles, Share2 } from 'lucide-react';
 import { Link } from 'wouter';
 import NFTPreviewModal from '@/components/NFTPreviewModal';
 
@@ -46,15 +46,15 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       setEmailSent(true);
       setEmailConfirmation(email);
       toast({
-        title: "Claim links sent!",
-        description: `We've sent claim links to ${email}.`,
+        title: "Success!",
+        description: `We've sent your Proof of Vibes to ${email}.`,
       });
     },
     onError: (error) => {
       console.log("Mutation error:", error);
       toast({
-        title: "Failed to send claim links",
-        description: "There was an error sending claim links. Please try again.",
+        title: "Failed to send",
+        description: "There was an error sending your collectibles. Please try again.",
         variant: "destructive",
       });
     }
@@ -68,7 +68,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       setEmailError('Email is required');
       toast({
         title: "Email required",
-        description: "Please enter your email address",
+        description: "Please enter your email address to receive your collectibles",
         variant: "destructive",
       });
       return;
@@ -102,7 +102,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       const url = qrCanvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'claim-nft-qr-code.png';
+      link.download = 'proof-of-vibes-qr.png';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -114,11 +114,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       return (
         <div className="space-y-3">
           <p className="text-sm">
-            We've sent claim instructions to{' '}
+            We've sent your digital collectibles to{' '}
             <span className="font-medium text-white">{emailConfirmation}</span>
           </p>
           <p className="text-sm text-white/70">
-            Check your email and follow the instructions to claim your NFTs.
+            Check your email and follow the instructions to view and share your Proof of Vibes.
           </p>
           <Button 
             className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full font-medium text-white transition-colors"
@@ -172,7 +172,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           onClick={handleSendEmail}
           disabled={!!emailError || !email || sendClaimEmailMutation.isPending}
         >
-          {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Claim Link'}
+          {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send to My Email'}
         </Button>
       </div>
     );
@@ -182,8 +182,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
     <>
       <div className="step-content">
         <div className="max-w-3xl mx-auto glassmorphism rounded-2xl overflow-hidden p-6">
-          <h2 className="font-heading text-2xl font-bold mb-4 text-center">Claim Your NFTs</h2>
-          <p className="text-center mb-6 text-white/70">Choose how you want to claim your newly minted NFTs</p>
+          <h2 className="font-heading text-2xl font-bold mb-4 text-center">
+            Get Your Proof of Vibes
+          </h2>
+          <p className="text-center mb-6 text-white/70">
+            Your digital collectibles are ready! Choose how you want to receive them
+          </p>
           
           <div className="grid md:grid-cols-2 gap-6">
             {/* Claim via Email */}
@@ -194,7 +198,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                     <Check className="text-green-500" />
                     Email Sent
                   </div>
-                ) : 'Claim via Email'}
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Share2 className="text-accent" />
+                    Get via Email
+                  </div>
+                )}
               </h3>
               
               {renderEmailSection()}
@@ -202,7 +211,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             
             {/* Claim via QR Code */}
             <div className="p-4 rounded-lg border border-white/20 bg-[#1A1A2E]">
-              <h3 className="font-heading text-lg font-medium mb-3">Claim via QR Code</h3>
+              <h3 className="font-heading text-lg font-medium mb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="text-accent" />
+                  Get via QR Code
+                </div>
+              </h3>
               <div className="flex flex-col items-center">
                 <div className="bg-white p-3 rounded-md mb-3" id="claim-qr-code">
                   <QRCode 
@@ -216,7 +230,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                   />
                 </div>
                 <p className="text-sm text-center text-white/70 mb-3">
-                  Scan this QR code or download it to claim your NFTs later
+                  Scan this QR code to view your digital collectibles on your phone
                 </p>
                 <Button 
                   variant="outline"
@@ -231,7 +245,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           
           {/* Collection Preview */}
           <div className="mt-8 mb-6">
-            <h4 className="font-heading text-lg font-medium mb-3">Your NFT Collection</h4>
+            <h4 className="font-heading text-lg font-medium mb-3">Your Digital Collectibles</h4>
             <div className="flex overflow-x-auto pb-4 space-x-3">
               {mintedNfts.map((nft, index) => (
                 <div 
@@ -241,7 +255,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 >
                   <img 
                     src={nft.imageUrl} 
-                    alt={`Minted NFT ${index + 1}`} 
+                    alt={`Digital Collectible ${index + 1}`} 
                     className="w-full h-full object-cover" 
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -258,7 +272,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 variant="outline"
                 className="px-6 py-3 border border-white/30 hover:bg-white/10 rounded-full font-medium text-white transition-colors"
               >
-                View in Gallery
+                View All Collectibles
               </Button>
             </Link>
             <Button 
