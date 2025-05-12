@@ -13,7 +13,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const nfts = await storage.getAllNfts(limit, offset);
-      res.json({ nfts });
+      
+      // Enhance NFTs with collection IDs for UI grouping
+      const enhancedNfts = nfts.map(nft => {
+        // Generate collection ID based on creation time
+        const creationDate = new Date(nft.createdAt);
+        const collectionId = `POV-${creationDate.getFullYear()}${String(creationDate.getMonth() + 1).padStart(2, '0')}${String(creationDate.getDate()).padStart(2, '0')}`;
+        
+        return {
+          ...nft,
+          collectionId,
+          certificateId: nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`
+        };
+      });
+      
+      res.json({ nfts: enhancedNfts });
     } catch (error) {
       console.error("Error getting digital collectibles:", error);
       res.status(500).json({ message: "Failed to retrieve digital collectibles" });
@@ -26,7 +40,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!nft) {
         return res.status(404).json({ message: "Digital collectible not found" });
       }
-      res.json({ nft });
+      
+      // Generate collection ID based on creation time
+      // This allows us to group NFTs created in the same batch
+      const creationDate = new Date(nft.createdAt);
+      const collectionId = `POV-${creationDate.getFullYear()}${String(creationDate.getMonth() + 1).padStart(2, '0')}${String(creationDate.getDate()).padStart(2, '0')}`;
+      
+      // Enhance NFT with derived fields for UI display
+      const enhancedNft = {
+        ...nft,
+        collectionId,
+        certificateId: nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`
+      };
+      
+      res.json({ nft: enhancedNft });
     } catch (error) {
       console.error("Error getting digital collectible:", error);
       res.status(500).json({ message: "Failed to retrieve digital collectible" });

@@ -55,18 +55,13 @@ export default function NFTDetailPage() {
     select: (data) => {
       if (!data?.nfts || !nftData?.nft) return { nfts: [] };
       
-      // Filter NFTs created in the same batch/collection
-      // We can identify this by finding NFTs created within a few seconds of each other
-      // For a real app, we would use a proper collectionId field
-      const currentNftTime = new Date(nftData.nft.createdAt).getTime();
+      // Filter NFTs by the same collection ID
       const relatedNfts = data.nfts.filter(nft => {
-        if (nft.id === nftId) return false; // Exclude current NFT
+        // Skip current NFT
+        if (nft.id === nftId) return false;
         
-        const nftTime = new Date(nft.createdAt).getTime();
-        const timeDiff = Math.abs(nftTime - currentNftTime);
-        
-        // Consider NFTs created within 60 seconds to be related
-        return timeDiff < 60000;
+        // Match on collection ID
+        return nft.collectionId === nftData.nft.collectionId;
       });
       
       return { nfts: relatedNfts };
