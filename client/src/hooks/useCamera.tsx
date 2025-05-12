@@ -3,10 +3,18 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 export function useCamera() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [photoTaken, setPhotoTaken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Create canvas for photo capture if it doesn't exist
+  useEffect(() => {
+    if (!canvasRef.current) {
+      canvasRef.current = document.createElement('canvas');
+    }
+  }, []);
   
   // Helper function to check if camera is truly ready
   const checkCameraReady = useCallback(() => {
@@ -144,47 +152,61 @@ export function useCamera() {
     console.log('Taking photo, camera ready check:', checkCameraReady());
     setError(null);
     
-    // Double check camera readiness
-    if (!checkCameraReady()) {
-      console.error('Camera not ready for photo capture');
-      setError('Camera not ready - please wait for camera to initialize completely');
-      return null;
-    }
-
     try {
-      // We've already checked that videoRef.current exists
-      const video = videoRef.current!;
+      // Check camera readiness and get video element
+      if (!videoRef.current || !videoRef.current.srcObject) {
+        const errorMsg = 'Camera not ready or no video stream';
+        console.error(errorMsg);
+        setError(errorMsg);
+        return null;
+      }
       
-      // Make sure video has dimensions
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
+      const video = videoRef.current;
+      
+      // Get video dimensions - sometimes these might be 0 even if the stream is active
+      let videoWidth = video.videoWidth;
+      let videoHeight = video.videoHeight;
       
       if (!videoWidth || !videoHeight) {
-        console.error('Video dimensions not available', { videoWidth, videoHeight });
-        setError('Video dimensions not available');
+        console.warn('Video dimensions unavailable, using fixed dimensions');
+        videoWidth = 640;
+        videoHeight = 480;
+      }
+      
+      console.log('Using dimensions for capture:', videoWidth, 'x', videoHeight);
+      
+      // Use the persistent canvas reference
+      const canvas = canvasRef.current!;
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+      
+      // Get context and draw the frame
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        const errorMsg = 'Could not get canvas context';
+        console.error(errorMsg);
+        setError(errorMsg);
         return null;
       }
       
-      console.log('Creating canvas with dimensions:', videoWidth, 'x', videoHeight);
-      // Create canvas with video dimensions
-      const canvas = document.createElement('canvas');
-      canvas.width = videoWidth;
-      canvas.height = videoHeight;
-
-      // Draw video frame to canvas
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('Could not get canvas context');
-        setError('Could not get canvas context');
-        return null;
-      }
-
+      // Clear the canvas first
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw the current video frame
       console.log('Drawing video to canvas');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
+      
       // Convert to data URL
       console.log('Converting to data URL');
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      
+      if (!dataUrl || dataUrl === 'data:,') {
+        const errorMsg = 'Failed to capture image - empty data URL';
+        console.error(errorMsg);
+        setError(errorMsg);
+        return null;
+      }
+      
       console.log('Photo taken successfully, data URL length:', dataUrl.length);
       setPhotoTaken(dataUrl);
       return dataUrl;

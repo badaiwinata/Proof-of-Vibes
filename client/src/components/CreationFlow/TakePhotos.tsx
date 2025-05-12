@@ -140,15 +140,15 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
           if (countdownRef.current) {
             clearInterval(countdownRef.current);
           }
-          console.log('Countdown finished, taking photo');
-          // Take the photo when countdown reaches 0
-          setTimeout(() => takePicture(), 0);
+          console.log('Countdown finished, taking photo with a short delay');
+          // Add a small delay before taking the photo to ensure the camera is fully ready
+          setTimeout(() => takePicture(), 500);
           return null;
         }
         return prevCount - 1;
       });
     }, 1000);
-  }, [isCameraReady, toast]); // Add dependencies
+  }, [isCameraReady, toast, takePicture]); // Add takePicture as dependency
 
   const handleTakePhoto = useCallback(() => {
     if (tries <= 0) {
@@ -212,6 +212,17 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
                   <p className="text-white/70">Camera access required</p>
                 </>
               )}
+            </div>
+          )}
+          
+          {/* Camera ready indicator (shows when initialized but not ready) */}
+          {isInitialized && !isCameraReady && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4 text-center">
+              <div className="animate-pulse rounded-full h-12 w-12 bg-amber-500/50 mb-3 flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-amber-300" />
+              </div>
+              <p className="text-white/90 font-medium">Camera is warming up</p>
+              <p className="text-white/70 text-sm mt-2">Please wait a moment...</p>
             </div>
           )}
           
