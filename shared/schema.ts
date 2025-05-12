@@ -11,7 +11,7 @@ export const users = pgTable("users", {
   solanaWallet: text("solana_wallet"),
 });
 
-// NFT table for storing minted NFTs
+// NFT table for storing minted NFTs - now "Digital Collectibles"
 export const nfts = pgTable("nfts", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
@@ -20,9 +20,19 @@ export const nfts = pgTable("nfts", {
   template: text("template").notNull(),
   vibes: text("vibes").array().notNull(),
   mintAddress: text("mint_address"),
+  
+  // Claiming-related fields
   claimed: boolean("claimed").default(false),
   claimToken: text("claim_token"),
   claimEmail: text("claim_email"),
+  claimedAt: timestamp("claimed_at"),
+  recipientName: text("recipient_name"),
+  
+  // Event branding fields
+  eventName: text("event_name").default("Proof of Vibes"),
+  eventDate: text("event_date"),
+  certificateId: text("certificate_id"), // For "Certificate of Authenticity"
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   metadata: jsonb("metadata"),
 });
@@ -53,6 +63,12 @@ export const insertNftSchema = createInsertSchema(nfts).pick({
   mintAddress: true,
   claimToken: true,
   claimEmail: true,
+  claimed: true,
+  claimedAt: true,
+  recipientName: true,
+  eventName: true,
+  eventDate: true,
+  certificateId: true,
   metadata: true,
 });
 
