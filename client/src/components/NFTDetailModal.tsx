@@ -59,14 +59,14 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
   const transactionHash = nft.mintAddress || `${certificateId.replace('POV-', '')}-${Math.random().toString(16).slice(2, 10)}`;
   
   // Set rarity level based on template
-  const rarityMap = {
+  const rarityMap: Record<string, string> = {
     'classic': 'Common',
     'neon': 'Rare',
     'retro': 'Uncommon',
     'minimal': 'Epic'
   };
   
-  const rarity = rarityMap[nft.template as keyof typeof rarityMap] || 'Rare';
+  const rarity = rarityMap[nft.template] || 'Rare';
   
   // Collection ID from the enhanced NFT object
   const collectionId = nft.collectionId || 'uncategorized';
@@ -78,14 +78,14 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
   const creatorName = "Proof of Vibes";
   
   // Floor price based on rarity
-  const floorPriceMap = {
+  const floorPriceMap: Record<string, string> = {
     'Common': '0.01 SOL',
     'Uncommon': '0.05 SOL',
     'Rare': '0.15 SOL',
     'Epic': '0.5 SOL'
   };
   
-  const floorPrice = floorPriceMap[rarity];
+  const floorPrice = floorPriceMap[rarity] || floorPriceMap.Common;
   
   // Network and other blockchain details
   const network = "Solana";
@@ -138,7 +138,7 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl bg-[#1A1A2E] border border-white/20 text-white">
+      <DialogContent className="sm:max-w-3xl bg-[#1A1A2E] border border-white/20 text-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Award className="h-5 w-5 text-purple-400" />
@@ -364,7 +364,7 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {/* Current NFT */}
                 <div className="glassmorphism rounded-xl p-2 relative">
                   <div className="absolute top-4 left-4 z-10 bg-purple-500/80 text-white text-xs px-2 py-1 rounded-full">

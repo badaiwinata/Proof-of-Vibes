@@ -32,6 +32,7 @@ export const nfts = pgTable("nfts", {
   eventName: text("event_name").default("Proof of Vibes"),
   eventDate: text("event_date"),
   certificateId: text("certificate_id"), // For "Certificate of Authenticity"
+  collectionId: text("collection_id"), // For grouping related NFTs into collections
   
   createdAt: timestamp("created_at").defaultNow().notNull(),
   metadata: jsonb("metadata"),
@@ -69,6 +70,7 @@ export const insertNftSchema = createInsertSchema(nfts).pick({
   eventName: true,
   eventDate: true,
   certificateId: true,
+  collectionId: true,
   metadata: true,
 });
 
