@@ -306,13 +306,24 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
           ))}
         </div>
         
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex justify-between items-center">
+          <div className="text-sm text-white/70">
+            {photos.length}/5 photos taken
+          </div>
+
           {photos.length > 0 && (
             <Button 
-              className="px-6 py-2 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white"
+              variant="default"
+              size="lg"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-full font-bold text-white shadow-glow"
               onClick={() => {
                 console.log('Next button clicked, navigating to Select Photos');
-                onNext();
+                // Force navigation to next step
+                if (typeof onNext === 'function') {
+                  onNext();
+                } else {
+                  console.error('onNext is not a function', onNext);
+                }
               }}
             >
               Next: Select Photos →
@@ -320,8 +331,8 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
           )}
           
           {/* Debug information */}
-          <div className="absolute bottom-0 left-0 text-xs opacity-50 p-1">
-            Photos: {photos.length} | Camera ready: {isCameraReady ? 'Yes' : 'No'}
+          <div className="fixed bottom-2 left-2 text-xs bg-black/50 text-white p-1 rounded z-50">
+            Photos: {photos.length} | Camera: {isCameraReady ? '✓' : '✗'}
           </div>
         </div>
       </div>

@@ -61,8 +61,18 @@ export default function CreateNFT() {
         <div>
           <ProgressIndicator currentStep={currentStep} />
           
+          {/* Debug info - currentStep value */}
+          <div className="fixed top-2 right-2 bg-black/50 text-xs text-white px-2 py-1 rounded z-50">
+            Current step: {currentStep} | Photos: {photos.length}
+          </div>
+          
           {currentStep === 'take-photos' && (
-            <TakePhotos onNext={() => handleNext('select-photos')} />
+            <TakePhotos 
+              onNext={() => {
+                console.log('TakePhotos onNext called, navigating to select-photos');
+                handleNext('select-photos');
+              }} 
+            />
           )}
           
           {currentStep === 'select-photos' && (
