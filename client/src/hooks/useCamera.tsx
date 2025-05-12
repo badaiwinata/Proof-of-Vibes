@@ -7,6 +7,16 @@ export function useCamera() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [photoTaken, setPhotoTaken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Helper function to check if camera is truly ready
+  const checkCameraReady = useCallback(() => {
+    return !!(
+      videoRef.current && 
+      videoRef.current.srcObject && 
+      videoRef.current.videoWidth > 0 && 
+      videoRef.current.videoHeight > 0
+    );
+  }, []);
 
   // Initialize camera
   const initializeCamera = useCallback(async () => {
@@ -131,20 +141,23 @@ export function useCamera() {
 
   // Take photo
   const takePhoto = useCallback(async (): Promise<string | null> => {
-    console.log('Taking photo, camera ready:', isCameraReady, 'video ref:', !!videoRef.current);
+    console.log('Taking photo, camera ready check:', checkCameraReady());
     setError(null);
     
-    // Force check for camera readiness by checking videoRef
-    if (!videoRef.current || !videoRef.current.srcObject) {
-      console.error('Camera video element not ready or no stream attached');
-      setError('Camera not ready - no video stream found');
+    // Double check camera readiness
+    if (!checkCameraReady()) {
+      console.error('Camera not ready for photo capture');
+      setError('Camera not ready - please wait for camera to initialize completely');
       return null;
     }
 
     try {
+      // We've already checked that videoRef.current exists
+      const video = videoRef.current!;
+      
       // Make sure video has dimensions
-      const videoWidth = videoRef.current.videoWidth;
-      const videoHeight = videoRef.current.videoHeight;
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
       
       if (!videoWidth || !videoHeight) {
         console.error('Video dimensions not available', { videoWidth, videoHeight });
@@ -167,7 +180,7 @@ export function useCamera() {
       }
 
       console.log('Drawing video to canvas');
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Convert to data URL
       console.log('Converting to data URL');
@@ -181,7 +194,7 @@ export function useCamera() {
       setError(`Error taking photo: ${errorMsg}`);
       return null;
     }
-  }, []);
+  }, [checkCameraReady]);
 
   // Stop camera
   const stopCamera = useCallback(() => {
@@ -204,6 +217,32 @@ export function useCamera() {
     setError(null);
   }, []);
 
+  // Check camera status periodically
+  useEffect(() => {
+    // Only run check if camera is initialized
+    if (isInitialized) {
+      // Set isCameraReady based on actual camera state
+      const isReady = checkCameraReady();
+      if (isReady !== isCameraReady) {
+        console.log('Camera ready state changed:', isReady);
+        setIsCameraReady(isReady);
+      }
+      
+      // Set up periodic check for camera status
+      const statusCheckInterval = setInterval(() => {
+        const ready = checkCameraReady();
+        if (ready !== isCameraReady) {
+          console.log('Camera status updated:', ready);
+          setIsCameraReady(ready);
+        }
+      }, 1000);
+      
+      return () => {
+        clearInterval(statusCheckInterval);
+      };
+    }
+  }, [isInitialized, isCameraReady, checkCameraReady]);
+  
   // Cleanup when component unmounts
   useEffect(() => {
     return () => {

@@ -75,18 +75,7 @@ export default function TakePhotos({ onNext }: TakePhotosProps) {
 
   // Define takePicture function before it's used
   const takePicture = async () => {
-    console.log('Taking picture, camera ready:', isCameraReady);
-    
-    // Check for camera readiness
-    if (!isCameraReady) {
-      console.log('Camera not ready, aborting photo capture');
-      toast({
-        title: "Camera not ready",
-        description: "Please make sure camera is initialized before taking a photo.",
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log('Taking picture, attempting photo capture');
     
     // Activate flash effect
     setFlashActive(true);
