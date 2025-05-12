@@ -35,26 +35,37 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       
       // Prepare NFT IDs to claim
       const nftIdsToSend = mintedNfts.map(nft => nft.id);
-      console.log("NFT IDs to claim:", nftIdsToSend, "Email:", email);
+      
+      // Filter out any recipients with empty emails
+      const validRecipients = recipients.filter(r => r.email.trim() !== '');
+      console.log("NFT IDs to claim:", nftIdsToSend, "Recipients:", validRecipients);
+      
+      if (validRecipients.length === 0) {
+        throw new Error("At least one valid email is required");
+      }
       
       const response = await apiRequest('POST', '/api/send-claim-email', { 
         nftIds: nftIdsToSend,
-        email,
-        recipientName
+        recipients: validRecipients
       });
       
       const data = await response.json();
       console.log("API response:", response);
       console.log("JSON response data:", data);
-      return data;
+      return { data, recipients: validRecipients };
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data, recipients }) => {
       console.log("Mutation successful with data:", data);
       setEmailSent(true);
-      setEmailConfirmation(email);
+      setEmailsConfirmation(recipients.map(r => r.email));
+      
+      const recipientText = recipients.length === 1 
+        ? recipients[0].email
+        : `${recipients.length} recipients`;
+        
       toast({
         title: "Success!",
-        description: `We've sent your Proof of Vibes to ${email}.`,
+        description: `We've sent your Proof of Vibes to ${recipientText}.`,
       });
     },
     onError: (error) => {
@@ -67,32 +78,62 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
     }
   });
 
+  // Add a new recipient field
+  const addRecipient = () => {
+    setRecipients([...recipients, { name: '', email: '' }]);
+  };
+
+  // Remove a recipient field
+  const removeRecipient = (index: number) => {
+    if (recipients.length > 1) {
+      const newRecipients = [...recipients];
+      newRecipients.splice(index, 1);
+      setRecipients(newRecipients);
+    }
+  };
+  
+  // Update a recipient's information
+  const updateRecipient = (index: number, field: 'name' | 'email', value: string) => {
+    const newRecipients = [...recipients];
+    newRecipients[index] = { 
+      ...newRecipients[index], 
+      [field]: value,
+      // Clear error when updating the field
+      error: field === 'email' ? validateEmail(value) : newRecipients[index].error
+    };
+    setRecipients(newRecipients);
+  };
+  
+  // Validate an email address
+  const validateEmail = (email: string): string | undefined => {
+    if (!email) return 'Email is required';
+    if (!/^\S+@\S+\.\S+$/.test(email)) return 'Please enter a valid email address';
+    return undefined;
+  };
+  
   const handleSendEmail = () => {
-    console.log("Send email button clicked with email:", email);
+    console.log("Send email button clicked with recipients:", recipients);
     
-    // Validate email format
-    if (!email) {
-      setEmailError('Email is required');
+    // Validate all email addresses
+    let hasError = false;
+    const updatedRecipients = recipients.map(recipient => {
+      const error = validateEmail(recipient.email);
+      if (error) hasError = true;
+      return { ...recipient, error };
+    });
+    
+    setRecipients(updatedRecipients);
+    
+    if (hasError) {
       toast({
-        title: "Email required",
-        description: "Please enter your email address to receive your collectibles",
+        title: "Invalid emails",
+        description: "Please check all email addresses and try again",
         variant: "destructive",
       });
       return;
     }
     
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setEmailError('Please enter a valid email address');
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Clear any errors and send
-    setEmailError(null);
+    // If all validations pass, send the emails
     console.log("Calling send claim email mutation");
     sendClaimEmailMutation.mutate();
   };
@@ -123,13 +164,19 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="bg-green-500/20 border border-green-500/30 rounded-md p-3 mb-3">
             <p className="text-sm flex items-center gap-2">
               <Check className="h-4 w-4 text-green-400" />
-              <span>Certificate of Authenticity sent!</span>
+              <span>Certificate{emailsConfirmation.length > 1 ? 's' : ''} of Authenticity sent!</span>
             </p>
           </div>
           <p className="text-sm">
-            We've sent your digital collectibles to{' '}
-            <span className="font-medium text-white">{emailConfirmation}</span>
+            We've sent your digital collectibles to:
           </p>
+          <div className="flex flex-wrap gap-2 my-2">
+            {emailsConfirmation.map((email, index) => (
+              <Badge key={index} variant="secondary" className="bg-purple-500/20">
+                {email}
+              </Badge>
+            ))}
+          </div>
           <p className="text-sm text-white/70">
             Check your email and follow the instructions to view and share your Proof of Vibes.
           </p>
@@ -137,8 +184,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
             className="w-full px-4 py-2 bg-white/10 hover:bg-white/20 rounded-full font-medium text-white transition-colors"
             onClick={() => {
               setEmailSent(false);
-              setEmail('');
-              setRecipientName('');
+              setRecipients([{ name: '', email: '' }]);
             }}
           >
             Send to another email
@@ -151,65 +197,85 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       <div>
         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md mb-4">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
-            <Award className="h-4 w-4 text-indigo-400" />
-            <span>Certificate of Authenticity</span>
+            <Users className="h-4 w-4 text-indigo-400" />
+            <span>Group Photo Collection</span>
           </div>
           <p className="text-xs text-white/70">
-            Complete the information below to receive your personalized digital collectible certificate.
+            Send the same group photo to multiple recipients - perfect for sharing event memories.
           </p>
         </div>
       
-        {/* Recipient Name */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Your Name</label>
-          <Input
-            type="text"
-            value={recipientName}
-            onChange={(e) => setRecipientName(e.target.value)}
-            placeholder="Enter your name (optional)"
-            className="w-full px-4 py-2 bg-[#1A1A2E] border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-        </div>
-        
-        {/* Email Input */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Your Email</label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => {
-              const newEmail = e.target.value;
-              setEmail(newEmail);
+        {/* Multiple Recipients */}
+        <div className="space-y-4">
+          {recipients.map((recipient, index) => (
+            <div key={index} className="p-3 bg-black/20 rounded-md">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-sm font-medium">Recipient {index + 1}</h4>
+                {recipients.length > 1 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 w-7 p-0 text-white/70 hover:text-white hover:bg-red-500/20"
+                    onClick={() => removeRecipient(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               
-              // Validate email format when there's input
-              if (newEmail && !/^\S+@\S+\.\S+$/.test(newEmail)) {
-                setEmailError('Please enter a valid email address');
-              } else {
-                setEmailError(null);
-              }
-            }}
-            placeholder="your@email.com"
-            className={`w-full px-4 py-2 bg-[#1A1A2E] border ${
-              emailError ? 'border-red-500' : 'border-white/20'
-            } rounded-lg focus:outline-none focus:ring-2 ${
-              emailError ? 'focus:ring-red-500' : 'focus:ring-primary'
-            }`}
-          />
-          {emailError && (
-            <p className="mt-2 text-sm text-red-500">{emailError}</p>
-          )}
+              {/* Name Input */}
+              <div className="mb-3">
+                <label className="block text-xs text-white/70 mb-1">Name (optional)</label>
+                <Input
+                  type="text"
+                  value={recipient.name}
+                  onChange={(e) => updateRecipient(index, 'name', e.target.value)}
+                  placeholder="Friend's name"
+                  className="w-full px-3 py-1 text-sm bg-[#1A1A2E] border border-white/20 rounded-lg"
+                />
+              </div>
+              
+              {/* Email Input */}
+              <div>
+                <label className="block text-xs text-white/70 mb-1">Email</label>
+                <Input
+                  type="email"
+                  value={recipient.email}
+                  onChange={(e) => updateRecipient(index, 'email', e.target.value)}
+                  placeholder="their@email.com"
+                  className={`w-full px-3 py-1 text-sm bg-[#1A1A2E] border ${
+                    recipient.error ? 'border-red-500' : 'border-white/20'
+                  } rounded-lg`}
+                />
+                {recipient.error && (
+                  <p className="mt-1 text-xs text-red-500">{recipient.error}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          
+          {/* Add Recipient Button */}
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="w-full border-dashed border-white/30 hover:bg-white/5"
+            onClick={addRecipient}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add another recipient
+          </Button>
         </div>
         
         <Button 
-          className={`w-full px-4 py-2 rounded-full font-bold text-white transition-colors ${
-            emailError || !email
-              ? 'bg-primary/50 cursor-not-allowed'
-              : 'bg-primary hover:bg-primary/90'
-          }`}
+          className="w-full px-4 py-2 mt-6 rounded-full font-bold text-white transition-colors bg-primary hover:bg-primary/90"
           onClick={handleSendEmail}
-          disabled={!!emailError || !email || sendClaimEmailMutation.isPending}
+          disabled={recipients.length === 0 || sendClaimEmailMutation.isPending}
         >
-          {sendClaimEmailMutation.isPending ? 'Sending...' : 'Send Certificate to My Email'}
+          {sendClaimEmailMutation.isPending 
+            ? 'Sending...' 
+            : recipients.length > 1 
+              ? `Send to ${recipients.length} recipients` 
+              : 'Send Certificate'}
         </Button>
       </div>
     );
