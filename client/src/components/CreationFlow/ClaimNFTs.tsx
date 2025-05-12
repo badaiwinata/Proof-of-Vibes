@@ -157,11 +157,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="bg-green-500/20 border border-green-500/30 rounded-md p-3 mb-3">
             <p className="text-sm flex items-center gap-2">
               <Check className="h-4 w-4 text-green-400" />
-              <span>Certificate{copyCount > 1 ? 's' : ''} of Authenticity sent!</span>
+              <span>{copyCount} Digital Collectible{copyCount > 1 ? 's' : ''} Ready!</span>
             </p>
           </div>
           <p className="text-sm">
-            We've sent your digital collectibles to:
+            We've sent your group photo copies to:
           </p>
           <div className="flex flex-wrap gap-2 my-2">
             <Badge variant="secondary" className="bg-purple-500/20">
@@ -281,15 +281,15 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="text-center mb-6">
             <div className="inline-block bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
               <h2 className="font-heading text-3xl font-bold mb-1">
-                Your Proof of Vibes Certificate
+                Your Proof of Vibes Collectibles
               </h2>
             </div>
             <p className="text-center mb-2 text-white/70">
-              Your exclusive event memorabilia is ready to be claimed
+              Your group photo collectibles are ready to be shared
             </p>
             <div className="flex justify-center items-center gap-2 text-sm text-white/50">
               <Award className="h-4 w-4" />
-              <span>Authenticity guaranteed by certificate</span>
+              <span>Multiple copies available for everyone in your group</span>
             </div>
           </div>
           
@@ -300,12 +300,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 {emailSent ? (
                   <div className="flex items-center gap-2">
                     <Check className="text-green-500" />
-                    Certificate Delivered
+                    Copies Delivered
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Mail className="text-accent" />
-                    Get Certificate via Email
+                    Send Copies via Email
                   </div>
                 )}
               </h3>
@@ -318,7 +318,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
               <h3 className="font-heading text-lg font-medium mb-3">
                 <div className="flex items-center gap-2">
                   <QrCode className="text-accent" />
-                  Get Certificate via QR
+                  Share via QR Code
                 </div>
               </h3>
               <div className="flex flex-col items-center">
@@ -338,10 +338,10 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-md w-full mb-3">
                   <div className="flex items-center gap-2 text-sm">
                     <SmartphoneNfc className="h-4 w-4 text-purple-400" />
-                    <span className="font-medium">At the Event?</span>
+                    <span className="font-medium">Group Photo?</span>
                   </div>
                   <p className="text-xs text-white/70 mt-1">
-                    Show this QR code to event staff to receive special perks!
+                    Share this QR code with everyone in your group so each person can claim their copy!
                   </p>
                 </div>
                 {/* Download QR Code button hidden per request */}
