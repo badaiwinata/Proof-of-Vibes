@@ -329,8 +329,8 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             
             <p className="text-sm text-white/70 mb-4 max-w-lg mx-auto">
               {mintProgress < 100
-                ? "Please wait while we prepare your personalized digital memorabilia with certificate of authenticity."
-                : "Your exclusive event memorabilia has been created and is ready to be claimed."}
+                ? "Please wait while we prepare your personalized photo copies with certificate of authenticity."
+                : "Your exclusive event photos have been created and are ready to be claimed."}
             </p>
             
             {/* Creation Progress */}
