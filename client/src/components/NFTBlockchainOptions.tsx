@@ -20,8 +20,11 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
   const { walletAddress, simulateWalletConnection, devnetEnabled } = useSolana();
   const { toast } = useToast();
   
-  const isMinted = nft.metadata?.blockchain?.status === 'minted';
-  const isPending = nft.metadata?.blockchain?.status === 'pending';
+  // Safely check blockchain status with proper type casting
+  const blockchainData = nft.metadata && typeof nft.metadata === 'object' ? 
+    (nft.metadata as any).blockchain || {} : {};
+  const isMinted = blockchainData.status === 'minted';
+  const isPending = blockchainData.status === 'pending';
   const certificateId = nft.certificateId || `POV-${nft.id}`;
   const editionInfo = nft.editionNumber && nft.editionCount && nft.editionCount > 1 
     ? ` - Edition ${nft.editionNumber} of ${nft.editionCount}` 
@@ -42,7 +45,7 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
       setMintInProgress(true);
       
       // Call the claim API with the wallet address
-      const response = await apiRequest('/api/claim', {
+      const response = await apiRequest<{success: boolean; nft: Nft; message: string}>('/api/claim', {
         method: 'POST',
         body: JSON.stringify({
           token: nft.claimToken,
@@ -50,7 +53,7 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
         }),
       });
       
-      if (response.success && response.nft) {
+      if (response && response.success && response.nft) {
         toast({
           title: "NFT Minted!",
           description: `Your collectible has been minted to your wallet on Solana devnet.`,
@@ -61,7 +64,7 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
           onNftUpdated(response.nft);
         }
       } else {
-        throw new Error(response.message || 'Failed to mint NFT');
+        throw new Error((response && response.message) || 'Failed to mint NFT');
       }
     } catch (error) {
       console.error('Error minting NFT:', error);
@@ -92,7 +95,7 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
   
   if (isMinted) {
     // Display minted status and blockchain info
-    const mintAddress = nft.mintAddress?.startsWith('solana:') 
+    const mintAddress = nft.mintAddress && typeof nft.mintAddress === 'string' && nft.mintAddress.startsWith('solana:') 
       ? nft.mintAddress.replace('solana:', '') 
       : nft.mintAddress;
       
@@ -109,11 +112,11 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
               <span className="font-medium text-white/80">Network:</span> 
               <span className="ml-2 text-green-400">Solana Devnet</span>
             </div>
-            {nft.metadata?.blockchain?.mintedAt && (
+            {blockchainData && blockchainData.mintedAt && (
               <div>
                 <span className="font-medium text-white/80">Minted:</span> 
                 <span className="ml-2 text-green-400">
-                  {new Date(nft.metadata.blockchain.mintedAt).toLocaleString()}
+                  {new Date(blockchainData.mintedAt).toLocaleString()}
                 </span>
               </div>
             )}
@@ -125,11 +128,11 @@ export default function NFTBlockchainOptions({ nft, onNftUpdated }: NFTBlockchai
                 </span>
               </div>
             )}
-            {nft.metadata?.blockchain?.recipientWallet && (
+            {blockchainData && blockchainData.recipientWallet && (
               <div>
                 <span className="font-medium text-white/80">Owner:</span> 
                 <span className="ml-2 text-green-400 text-xs break-all">
-                  {nft.metadata.blockchain.recipientWallet}
+                  {blockchainData.recipientWallet}
                 </span>
               </div>
             )}
