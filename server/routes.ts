@@ -107,7 +107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Digital Collectible Creation API with Solana Devnet Integration
+  // Digital Collectible Creation API
   app.post("/api/mint", async (req: Request, res: Response) => {
     try {
       // We'd normally authenticate the user here
@@ -122,33 +122,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const eventDate = new Date().toISOString().split('T')[0];
       const collectionId = `collection-${Date.now().toString()}`; // Same collection ID for all NFTs in this batch
       
-      // Create Solana NFT metadata for later minting (lazy minting)
-      const solanaMetadata = [];
-      
       for (const nftData of nftsToMint) {
         // Generate a random claim token for each collectible
         const claimToken = randomUUID();
         
         // Generate a certificate ID for authenticity
         const certificateId = `POV-${Date.now().toString().slice(-6)}-${randomUUID().substring(0, 4)}`;
-        
-        // Create attributes for the NFT metadata (for Solana)
-        const attributes = [
-          { trait_type: "Event", value: "Proof of Vibes" },
-          { trait_type: "Date", value: eventDate },
-          { trait_type: "Certificate", value: certificateId },
-          ...nftData.vibes.map((vibe: string) => ({ trait_type: "Vibe", value: vibe }))
-        ];
-        
-        // Prepare data for Solana (but don't mint yet - lazy minting approach)
-        solanaMetadata.push({
-          imageUrl: nftData.imageUrl,
-          name: `Proof of Vibes #${certificateId}`,
-          description: nftData.message || "A unique digital collectible from Proof of Vibes",
-          attributes,
-          claimToken,
-          editionCount
-        });
         
         // Validate collectible data with event information added
         const validNft = insertNftSchema.safeParse({
@@ -157,7 +136,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: nftData.message,
           template: nftData.template,
           vibes: nftData.vibes,
-          mintAddress: `solana:pending_${randomUUID().substring(0, 8)}`, // Will be updated when actually minted
+          mintAddress: nftData.mintAddress || `mint_${randomUUID().substring(0, 8)}`,
           claimToken,
           claimEmail: nftData.claimEmail,
           certificateId,
@@ -177,11 +156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
             editionInfo: {
               number: 1,
               count: editionCount
-            },
-            blockchain: {
-              network: "solana-devnet",
-              status: "pending", // Will be "minted" when claimed
-              attributes
             }
           }
         });
@@ -214,20 +188,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
               editionNumber: edition,
               masterNftId: masterNft.id, // Reference to the master NFT
               claimToken: editionClaimToken, // Each edition gets its own claim token
-              mintAddress: `solana:pending_${randomUUID().substring(0, 8)}`, // Will be updated when actually minted
               metadata: {
                 ...baseMetadata,
                 editionInfo: {
                   number: edition,
                   count: editionCount
-                },
-                blockchain: {
-                  network: "solana-devnet",
-                  status: "pending", // Will be "minted" when claimed
-                  attributes: [
-                    ...attributes,
-                    { trait_type: "Edition", value: `${edition} of ${editionCount}` }
-                  ]
                 }
               }
             };
@@ -235,34 +200,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Create the edition NFT
             const editionNft = await storage.createNft(editionNftData);
             mintedNfts.push(editionNft);
-            
-            // Add to solana metadata for lazy minting
-            solanaMetadata.push({
-              imageUrl: nftData.imageUrl,
-              name: `Proof of Vibes #${certificateId} - Edition ${edition} of ${editionCount}`,
-              description: nftData.message || "A unique digital collectible from Proof of Vibes",
-              attributes: [
-                ...attributes,
-                { trait_type: "Edition", value: `${edition} of ${editionCount}` }
-              ],
-              claimToken: editionClaimToken,
-              editionCount,
-              edition
-            });
           }
         }
       }
       
       // Create a message that mentions the edition count if greater than 1
       const message = editionCount > 1
-        ? `Your limited edition set of ${editionCount} collectibles has been prepared for the blockchain!`
-        : "Your digital collectible has been prepared for the blockchain!";
-      
+        ? `Your limited edition set of ${editionCount} collectibles has been created!`
+        : "Your digital collectible has been created!";
+        
       res.json({ 
         success: true, 
         message,
-        nfts: mintedNfts,
-        solanaMetadata // This wouldn't normally be sent to the client but helpful for debugging
+        nfts: mintedNfts 
       });
     } catch (error) {
       console.error("Error creating digital collectibles:", error);
@@ -270,10 +220,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Digital Collectible Claiming API with Solana Integration
+  // Digital Collectible Claiming API
   app.post("/api/claim", async (req: Request, res: Response) => {
     try {
-      const { token, email, recipientName, walletAddress } = req.body;
+      const { token, email, recipientName } = req.body;
       
       if (!token) {
         return res.status(400).json({ message: "Claim token is required" });
@@ -290,53 +240,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Generate a unique certificate ID if not already present
-      const certificateId = nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
-      const eventDate = nft.eventDate || new Date().toISOString().split('T')[0];
+      const certificateId = `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
+      const eventDate = new Date().toISOString().split('T')[0];
       
-      // Initialize mintAddress with a placeholder
-      let mintAddress = nft.mintAddress || `solana:pending_${token.substring(0, 8)}`;
-      
-      // If a wallet address is provided, attempt to mint the NFT on Solana
-      if (walletAddress) {
-        try {
-          // In a real implementation, we would call our Solana minting service
-          // For the prototype, we'll simulate the minting with a reference to Solana
-          
-          // Extract the metadata from the NFT
-          const metadata = nft.metadata || {};
-          const blockchainData = metadata && typeof metadata === 'object' ? (metadata as any).blockchain || {} : {};
-          const attributes = blockchainData.attributes || [
-            { trait_type: "Event", value: "Proof of Vibes" },
-            { trait_type: "Date", value: eventDate },
-            { trait_type: "Certificate", value: certificateId }
-          ];
-          
-          // Prepare NFT description
-          const description = nft.message || 
-            `Exclusive digital collectible from Proof of Vibes. Certificate #${certificateId}`;
-          
-          // Prepare NFT name with edition info if applicable
-          let name = `Proof of Vibes #${certificateId}`;
-          if (nft.editionNumber && nft.editionCount && nft.editionCount > 1) {
-            name += ` - Edition ${nft.editionNumber} of ${nft.editionCount}`;
-          }
-          
-          // For now, we'll just update the mintAddress format to show it's on Solana
-          // In a real implementation, this would be an actual Solana address
-          mintAddress = `solana:${Date.now().toString(16)}`;
-          
-          console.log(`[Solana Devnet] Minting NFT for wallet ${walletAddress}:`, {
-            name,
-            description,
-            attributes
-          });
-        } catch (mintError) {
-          console.error('Error minting on Solana:', mintError);
-          // Continue with claiming process but don't update mintAddress
-        }
-      }
-      
-      // Update NFT with claim information and Solana integration
+      // Update NFT with claim information
       const updatedNft = await storage.updateNft(nft.id, {
         claimed: true,
         claimEmail: email || nft.claimEmail,
@@ -344,31 +251,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         recipientName: recipientName || "Event Attendee",
         certificateId,
         eventDate,
-        eventName: "Proof of Vibes",
-        mintAddress,
-        metadata: JSON.parse(JSON.stringify({
-          // First, safely copy any existing metadata
-          ...(nft.metadata && typeof nft.metadata === 'object' ? nft.metadata : {}),
-          // Then add our blockchain information
-          blockchain: {
-            // Preserve any existing blockchain info
-            ...(nft.metadata && typeof nft.metadata === 'object' && 
-               (nft.metadata as any).blockchain && 
-               typeof (nft.metadata as any).blockchain === 'object' ? 
-               (nft.metadata as any).blockchain : {}),
-            // Add updated status info
-            status: walletAddress ? "minted" : "claimed",
-            mintedAt: new Date(),
-            recipientWallet: walletAddress || null
-          }
-        }))
+        eventName: "Proof of Vibes"
       });
       
       res.json({ 
         success: true, 
-        message: walletAddress 
-          ? "Your Proof of Vibes collectible has been minted to your wallet!" 
-          : "Your Proof of Vibes collectible has been claimed successfully!",
+        message: "Your Proof of Vibes collectible has been claimed successfully!",
         nft: updatedNft
       });
     } catch (error) {

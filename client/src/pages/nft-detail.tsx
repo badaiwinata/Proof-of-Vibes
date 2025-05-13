@@ -5,7 +5,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import NFTPreviewModal from '../components/NFTPreviewModal';
 import NFTCard from '../components/Gallery/NFTCard';
-import NFTBlockchainOptions from '../components/NFTBlockchainOptions';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
@@ -362,16 +361,25 @@ export default function NFTDetailPage() {
                     </div>
                   </div>
                   
-                  {/* Import NFTBlockchainOptions component */}
-                  {nft && <NFTBlockchainOptions 
-                    nft={nft} 
-                    onNftUpdated={(updatedNft) => {
-                      // Update local state with the minted NFT
-                      if (nftData) {
-                        nftData.nft = updatedNft;
-                      }
-                    }} 
-                  />}
+                  {/* Transaction Details (simplified for demo) */}
+                  <div className="mt-4">
+                    <h3 className="font-medium mb-2 flex items-center">
+                      <Smartphone className="h-4 w-4 mr-2 text-purple-300" />
+                      Blockchain Verification
+                    </h3>
+                    
+                    <div className="bg-black/20 p-3 rounded-md">
+                      <div className="flex items-center text-xs">
+                        <span className="text-white/60 mr-2">Transaction Hash:</span>
+                        <span className="font-mono truncate">{transactionHash}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-xs mt-2">
+                        <span className="text-white/60 mr-2">Network:</span>
+                        <span>Solana</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

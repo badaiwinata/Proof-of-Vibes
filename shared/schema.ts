@@ -76,9 +76,6 @@ export const insertNftSchema = createInsertSchema(nfts).pick({
   eventDate: true,
   certificateId: true,
   collectionId: true,
-  masterNftId: true,     // For edition references
-  editionNumber: true,   // Edition number (1, 2, 3, etc.)
-  editionCount: true,    // Total number of editions
   metadata: true,
 });
 
