@@ -28,7 +28,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     mutationFn: async () => {
       console.log("Starting mint mutation with selected photos:", selectedPhotos.length);
       
-      // Prepare collectible data with event information
+      // Prepare photo copy data with event information
       const nftsToMint = selectedPhotos.map(photoUrl => ({
         imageUrl: photoUrl,
         message: templateSelection.message,
@@ -39,7 +39,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         eventDate: new Date().toISOString().split('T')[0]
       }));
       
-      console.log("Preparing to mint collectibles:", nftsToMint);
+      console.log("Preparing to create photo copies:", nftsToMint);
       
       try {
         const response = await apiRequest('POST', '/api/mint', { 
@@ -256,7 +256,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             </div>
           </div>
           
-          {/* Collectible Preview Grid */}
+          {/* Photo Copies Preview Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {selectedPhotos.map((photo, index) => (
               <div 
@@ -322,8 +322,8 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               )}
               <p className="font-medium">
                 {mintProgress < 100 
-                  ? "Creating your certified digital collectibles..." 
-                  : "Your collectibles are ready for claiming!"}
+                  ? "Creating your certified photo copies..." 
+                  : "Your photo copies are ready for claiming!"}
               </p>
             </div>
             
