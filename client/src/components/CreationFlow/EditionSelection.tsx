@@ -25,12 +25,12 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
     }
     
     if (value < 1) {
-      setError('Minimum edition count is 1');
+      setError('Minimum copy count is 1');
       return;
     }
     
     if (value > 20) {
-      setError('Maximum edition count is 20');
+      setError('Maximum copy count is 20');
       return;
     }
     
@@ -40,7 +40,7 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
 
   const handleConfirm = () => {
     if (editionCount < 1 || editionCount > 20) {
-      setError('Please enter a number between 1 and 20');
+      setError('Please enter a number of copies between 1 and 20');
       return;
     }
     
@@ -51,9 +51,9 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
     <Dialog open={isOpen} onOpenChange={(open) => !open && onCancel()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Create Limited Edition</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Create Photo Copies</DialogTitle>
           <DialogDescription>
-            How many editions of this digital collectible would you like to create?
+            How many copies of this photo would you like to create for your group?
           </DialogDescription>
         </DialogHeader>
         
@@ -64,15 +64,15 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
             </div>
             
             <div className="text-center space-y-2">
-              <h3 className="text-lg font-medium">Edition Count</h3>
+              <h3 className="text-lg font-medium">Copy Count</h3>
               <p className="text-sm text-muted-foreground">
-                Each person will receive a unique numbered edition.
+                Each person will receive a unique numbered photo copy.
               </p>
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="editionCount">Number of Editions</Label>
+            <Label htmlFor="editionCount">Number of Photo Copies</Label>
             <Input 
               id="editionCount"
               type="number" 
@@ -84,7 +84,7 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
             />
             {error && <p className="text-xs text-red-500">{error}</p>}
             <p className="text-xs text-muted-foreground">
-              This creates multiple numbered copies (like "Edition 2 of 5") of your collectible.
+              This creates multiple numbered copies (like "Copy 2 of 5") of your photo.
             </p>
           </div>
           
@@ -93,7 +93,7 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
               onClick={handleConfirm} 
               className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
-              Create {editionCount} {editionCount === 1 ? 'Edition' : 'Editions'}
+              Create {editionCount} Photo {editionCount === 1 ? 'Copy' : 'Copies'}
             </Button>
             
             <Button 
