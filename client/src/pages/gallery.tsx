@@ -31,7 +31,6 @@ export default function Gallery() {
   });
   
   // Check URL for collectible parameter to auto-open modal
-  // Note: We keep 'collectible' as the URL parameter name for backward compatibility
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const collectibleId = params.get('collectible');
@@ -60,7 +59,7 @@ export default function Gallery() {
     refetch().then(() => {
       toast({
         title: "Gallery refreshed",
-        description: "The latest photo copies have been loaded",
+        description: "The latest collectibles have been loaded",
         variant: "default",
         duration: 2000
       });
@@ -165,7 +164,7 @@ export default function Gallery() {
               onClick={handleCreateClick}
             >
               <Camera className="h-5 w-5 mr-2" />
-              Take Photos & Create Photo Copies
+              Take Photos & Create Collectibles
             </Button>
           </div>
           
@@ -182,7 +181,7 @@ export default function Gallery() {
                         className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded overflow-hidden"
                         style={{ transform: `rotate(${index % 2 ? '-' : ''}${Math.random() * 2 + 1}deg)` }}
                       >
-                        <img src={nft.imageUrl} alt="Photo copy preview" className="w-full h-full object-cover" />
+                        <img src={nft.imageUrl} alt="Collectible preview" className="w-full h-full object-cover" />
                       </div>
                     ))
                   ) : (

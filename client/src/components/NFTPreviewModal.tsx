@@ -39,14 +39,14 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
   const transactionHash = nft.mintAddress || `${certificateId.replace('POV-', '')}-${Math.random().toString(16).slice(2, 10)}`;
   
   // Set rarity level based on template and vibes
-  const rarityMap: Record<string, 'Common' | 'Uncommon' | 'Rare' | 'Epic'> = {
+  const rarityMap = {
     'classic': 'Common',
     'neon': 'Rare',
     'retro': 'Uncommon',
     'minimal': 'Epic'
   };
   
-  const rarity = nft.template && rarityMap[nft.template] ? rarityMap[nft.template] : 'Rare';
+  const rarity = rarityMap[nft.template as keyof typeof rarityMap] || 'Rare';
   
   // Generate collection name
   const collectionName = nft.eventName || "Proof of Vibes Collection";
@@ -55,7 +55,7 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
   const creatorName = "Proof of Vibes";
   
   // Floor price based on rarity
-  const floorPriceMap: Record<'Common' | 'Uncommon' | 'Rare' | 'Epic', string> = {
+  const floorPriceMap = {
     'Common': '0.01 SOL',
     'Uncommon': '0.05 SOL',
     'Rare': '0.15 SOL',
@@ -79,10 +79,10 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Award className="h-5 w-5 text-purple-400" />
-            Photo Copy
+            Digital Collectible
           </DialogTitle>
           <DialogDescription className="text-white/70">
-            Your exclusive event photo with certificate of authenticity
+            Your exclusive event memorabilia with certificate of authenticity
           </DialogDescription>
         </DialogHeader>
         
@@ -94,19 +94,12 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
         <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
           <img 
             src={nft.imageUrl} 
-            alt="Photo Copy" 
+            alt="Digital Collectible" 
             className="w-full h-full object-cover" 
           />
           
-          {/* Edition/Copy Number Badge */}
-          <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
-            {nft.editionNumber && nft.editionCount 
-              ? `COPY ${nft.editionNumber}/${nft.editionCount}` 
-              : 'PHOTO COPY'}
-          </div>
-          
           {/* Rarity Badge */}
-          <div className="absolute top-6 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
+          <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
             {rarity.toUpperCase()}
           </div>
           

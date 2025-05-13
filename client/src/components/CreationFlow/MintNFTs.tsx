@@ -28,7 +28,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
     mutationFn: async () => {
       console.log("Starting mint mutation with selected photos:", selectedPhotos.length);
       
-      // Prepare photo copy data with event information
+      // Prepare collectible data with event information
       const nftsToMint = selectedPhotos.map(photoUrl => ({
         imageUrl: photoUrl,
         message: templateSelection.message,
@@ -39,7 +39,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         eventDate: new Date().toISOString().split('T')[0]
       }));
       
-      console.log("Preparing to create photo copies:", nftsToMint);
+      console.log("Preparing to mint collectibles:", nftsToMint);
       
       try {
         const response = await apiRequest('POST', '/api/mint', { 
@@ -256,7 +256,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
             </div>
           </div>
           
-          {/* Photo Copies Preview Grid */}
+          {/* Collectible Preview Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {selectedPhotos.map((photo, index) => (
               <div 
@@ -322,15 +322,15 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
               )}
               <p className="font-medium">
                 {mintProgress < 100 
-                  ? "Creating your certified photo copies..." 
-                  : "Your photo copies are ready for claiming!"}
+                  ? "Creating your certified digital collectibles..." 
+                  : "Your collectibles are ready for claiming!"}
               </p>
             </div>
             
             <p className="text-sm text-white/70 mb-4 max-w-lg mx-auto">
               {mintProgress < 100
-                ? "Please wait while we prepare your personalized photo copies with certificate of authenticity."
-                : "Your exclusive event photos have been created and are ready to be claimed."}
+                ? "Please wait while we prepare your personalized digital memorabilia with certificate of authenticity."
+                : "Your exclusive event memorabilia has been created and is ready to be claimed."}
             </p>
             
             {/* Creation Progress */}

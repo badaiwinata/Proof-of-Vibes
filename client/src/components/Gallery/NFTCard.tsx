@@ -25,17 +25,17 @@ export default function NFTCard({ nft }: NFTCardProps) {
     'minimal': 'Epic'
   };
   
-  const rarity = nft.template && rarityMap[nft.template as keyof typeof rarityMap] ? rarityMap[nft.template as keyof typeof rarityMap] : 'Rare';
+  const rarity = rarityMap[nft.template as keyof typeof rarityMap] || 'Rare';
   
   // Floor price based on rarity
-  const floorPriceMap: Record<'Common' | 'Uncommon' | 'Rare' | 'Epic', string> = {
+  const floorPriceMap = {
     'Common': '0.01 SOL',
     'Uncommon': '0.05 SOL',
     'Rare': '0.15 SOL',
     'Epic': '0.5 SOL'
   };
   
-  const floorPrice = floorPriceMap[rarity as 'Common' | 'Uncommon' | 'Rare' | 'Epic'];
+  const floorPrice = floorPriceMap[rarity as keyof typeof floorPriceMap];
   
   // Certificate ID or generate a placeholder
   const certificateId = nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
@@ -70,11 +70,11 @@ export default function NFTCard({ nft }: NFTCardProps) {
         </div>
       )}
       
-      {/* Copy Number Badge - Show if this is part of a photo set */}
+      {/* Edition Badge - Show if this NFT is part of a limited edition */}
       {nft.editionNumber && nft.editionCount && (
         <div className="absolute top-24 right-2 z-10 bg-indigo-600/70 text-white text-[10px] px-2 py-0.5 rounded-md flex items-center shadow-sm backdrop-blur-sm">
           <Award className="h-2.5 w-2.5 mr-1" />
-          Copy {nft.editionNumber}/{nft.editionCount}
+          Edition {nft.editionNumber}/{nft.editionCount}
         </div>
       )}
       
@@ -86,7 +86,7 @@ export default function NFTCard({ nft }: NFTCardProps) {
       <div className="relative photo-frame overflow-hidden">
         <img 
           src={nft.imageUrl} 
-          alt={`Photo Copy: ${nft.message}`} 
+          alt={`Collectible: ${nft.message}`} 
           className="w-full h-full object-cover" 
         />
         

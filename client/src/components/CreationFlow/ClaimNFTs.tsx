@@ -301,14 +301,12 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 >
                   {/* Edition Badge */}
                   <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] px-2 py-0.5 rounded-bl-md font-medium">
-                    {nft.editionNumber && nft.editionCount 
-                      ? `COPY ${nft.editionNumber}/${nft.editionCount}` 
-                      : `COPY ${index + 1}/${editionCount}`}
+                    {nft.editionNumber ? `EDITION ${nft.editionNumber}/${nft.editionCount}` : 'EDITION'}
                   </div>
                   
                   <img 
                     src={nft.imageUrl} 
-                    alt={`Photo copy ${nft.editionNumber || index + 1} of ${nft.editionCount || editionCount}`} 
+                    alt={`Edition ${nft.editionNumber || index + 1} of ${nft.editionCount || editionCount}`} 
                     className="w-full h-full object-cover" 
                   />
                   
@@ -332,7 +330,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 variant="outline"
                 className="px-6 py-3 border border-white/30 hover:bg-white/10 rounded-full font-medium text-white transition-colors"
               >
-                View All Photo Copies
+                View All Collectibles
               </Button>
             </Link>
             <Button 

@@ -142,10 +142,10 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Award className="h-5 w-5 text-purple-400" />
-            Photo Copy
+            Digital Collectible
           </DialogTitle>
           <DialogDescription className="text-white/70">
-            Your exclusive event photo with certificate of authenticity
+            Your exclusive event memorabilia with certificate of authenticity
           </DialogDescription>
         </DialogHeader>
         
@@ -253,10 +253,10 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
                     {/* Show Edition information if available */}
                     {nft.editionNumber && nft.editionCount && (
                       <div className="col-span-2 bg-purple-500/10 border border-purple-500/20 rounded-md p-2 mt-2">
-                        <h4 className="text-xs text-white/70 mb-1">Limited Photo Set</h4>
+                        <h4 className="text-xs text-white/70 mb-1">Limited Edition</h4>
                         <div className="flex items-center">
                           <Award className="h-4 w-4 mr-2 text-purple-400" />
-                          <span className="font-medium">Copy {nft.editionNumber} of {nft.editionCount}</span>
+                          <span className="font-medium">Edition {nft.editionNumber} of {nft.editionCount}</span>
                         </div>
                       </div>
                     )}
