@@ -74,40 +74,48 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
           <div className="space-y-4">
             <div>
               <Label htmlFor="editionCount">Number of Photo Copies</Label>
-              <div className="grid grid-cols-3 gap-2 mt-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                  <Button
-                    key={num}
-                    type="button"
-                    variant={editionCount === num ? "default" : "outline"}
-                    onClick={() => {
+              
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (editionCount > 1) {
                       setError('');
-                      setEditionCount(num);
-                    }}
-                    className={cn(
-                      "h-12 text-lg font-bold",
-                      editionCount === num && "bg-gradient-to-r from-purple-600 to-indigo-600"
-                    )}
-                  >
-                    {num}
-                  </Button>
-                ))}
-                <div className="col-span-3 mt-1">
-                  <Input 
-                    id="editionCount"
-                    type="number" 
-                    min={1}
-                    max={20}
-                    value={editionCount > 9 ? editionCount : ''} 
-                    onChange={handleEditionChange}
-                    placeholder="Custom (10-20)"
-                    className={cn("text-center", error && "border-red-500")}
-                  />
+                      setEditionCount(editionCount - 1);
+                    }
+                  }}
+                  disabled={editionCount <= 1}
+                  className="h-14 w-14 rounded-full text-xl"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-[2px] rounded-lg">
+                  <div className="flex items-center justify-center h-24 w-24 rounded-lg bg-background text-3xl font-bold">
+                    {editionCount}
+                  </div>
                 </div>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    if (editionCount < 20) {
+                      setError('');
+                      setEditionCount(editionCount + 1);
+                    }
+                  }}
+                  disabled={editionCount >= 20}
+                  className="h-14 w-14 rounded-full text-xl"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
               </div>
             </div>
+            
             {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground text-center mt-2">
               This creates multiple numbered copies (like "Copy 2 of 5") of your photo.
             </p>
           </div>
