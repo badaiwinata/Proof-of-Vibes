@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { GiStack } from 'react-icons/gi';
 import { cn } from '@/lib/utils';
 
@@ -17,13 +15,7 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
   const [editionCount, setEditionCount] = useState<number>(3);
   const [error, setError] = useState<string>('');
   
-  const handleEditionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    if (isNaN(value)) {
-      setError('Please enter a valid number');
-      return;
-    }
-    
+  const handleEditionChange = (value: number) => {
     if (value < 1) {
       setError('Minimum copy count is 1');
       return;
@@ -36,6 +28,18 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
     
     setError('');
     setEditionCount(value);
+  };
+
+  const decreaseCount = () => {
+    if (editionCount > 1) {
+      handleEditionChange(editionCount - 1);
+    }
+  };
+
+  const increaseCount = () => {
+    if (editionCount < 20) {
+      handleEditionChange(editionCount + 1);
+    }
   };
 
   const handleConfirm = () => {
@@ -79,16 +83,11 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    if (editionCount > 1) {
-                      setError('');
-                      setEditionCount(editionCount - 1);
-                    }
-                  }}
+                  onClick={decreaseCount}
                   disabled={editionCount <= 1}
                   className="h-14 w-14 rounded-full text-xl"
                 >
-                  <ChevronLeft className="h-6 w-6" />
+                  &lt;
                 </Button>
                 
                 <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-[2px] rounded-lg">
@@ -100,16 +99,11 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    if (editionCount < 20) {
-                      setError('');
-                      setEditionCount(editionCount + 1);
-                    }
-                  }}
+                  onClick={increaseCount}
                   disabled={editionCount >= 20}
                   className="h-14 w-14 rounded-full text-xl"
                 >
-                  <ChevronRight className="h-6 w-6" />
+                  &gt;
                 </Button>
               </div>
             </div>
