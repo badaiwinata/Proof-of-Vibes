@@ -61,7 +61,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
       } else {
         toast({
           title: "Success!",
-          description: `Your Proof of Vibes ${editionCount > 1 ? 'editions are' : 'edition is'} ready. Scan the QR code to claim.`,
+          description: `Your photo ${editionCount > 1 ? 'copies are' : 'copy is'} ready. Scan the QR code to claim.`,
         });
       }
     },
@@ -88,7 +88,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
   };
   
   const handleSendClaimLinks = () => {
-    console.log("Send claim links button clicked for editions:", editionCount);
+    console.log("Send claim links button clicked for photo copies:", editionCount);
     
     // Validate email if one was entered (optional now)
     if (email) {
@@ -136,11 +136,11 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="bg-green-500/20 border border-green-500/30 rounded-md p-3 mb-3">
             <p className="text-sm flex items-center gap-2">
               <Check className="h-4 w-4 text-green-400" />
-              <span>{editionCount} Limited Edition{editionCount > 1 ? 's' : ''} Sent!</span>
+              <span>{editionCount} Photo {editionCount > 1 ? 'Copies' : 'Copy'} Sent!</span>
             </p>
           </div>
           <p className="text-sm">
-            We've sent your limited edition collectibles to:
+            We've sent your photo copies to:
           </p>
           <div className="flex flex-wrap gap-2 my-2">
             <Badge variant="secondary" className="bg-purple-500/20">
@@ -168,10 +168,10 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
         <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-md mb-4">
           <div className="flex items-center gap-2 text-sm font-medium mb-2">
             <Share2 className="h-4 w-4 text-indigo-400" />
-            <span>Share Your Limited Editions</span>
+            <span>Share Your Photo Copies</span>
           </div>
           <p className="text-xs text-white/70">
-            Send your {editionCount > 1 ? `${editionCount} limited editions` : 'limited edition'} to the group via email or QR code.
+            Send your {editionCount > 1 ? `${editionCount} photo copies` : 'photo copy'} to the group via email or QR code.
           </p>
         </div>
         
@@ -179,7 +179,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2">Email (Optional)</label>
           <p className="text-xs text-white/70 mb-2">
-            Enter an email to receive your {editionCount > 1 ? 'editions' : 'edition'}, or use the QR code
+            Enter an email to receive your {editionCount > 1 ? 'photo copies' : 'photo copy'}, or use the QR code
           </p>
           <Input
             type="email"
@@ -203,8 +203,8 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           {sendClaimEmailMutation.isPending 
             ? 'Sending...' 
             : editionCount > 1 
-              ? `Send ${editionCount} Limited Editions` 
-              : 'Send Limited Edition'}
+              ? `Send ${editionCount} Photo Copies` 
+              : 'Send Photo Copy'}
         </Button>
       </div>
     );
@@ -218,15 +218,15 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="text-center mb-6">
             <div className="inline-block bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
               <h2 className="font-heading text-3xl font-bold mb-1">
-                Your Proof of Vibes Limited Editions
+                Your Photo Copies Are Ready
               </h2>
             </div>
             <p className="text-center mb-2 text-white/70">
-              Your limited edition collection is ready to be shared
+              Your photo collection is ready to be shared
             </p>
             <div className="flex justify-center items-center gap-2 text-sm text-white/50">
               <Award className="h-4 w-4" />
-              <span>{editionCount > 1 ? `${editionCount} numbered editions` : 'Limited edition'} created for your group</span>
+              <span>{editionCount > 1 ? `${editionCount} numbered photo copies` : 'Photo copy'} created for your group</span>
             </div>
           </div>
           
@@ -255,7 +255,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
               <h3 className="font-heading text-lg font-medium mb-3">
                 <div className="flex items-center gap-2">
                   <QrCode className="text-accent" />
-                  Share Limited Editions
+                  Share Photo Copies
                 </div>
               </h3>
               <div className="flex flex-col items-center">
@@ -275,10 +275,10 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
                 <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-md w-full mb-3">
                   <div className="flex items-center gap-2 text-sm">
                     <Users className="h-4 w-4 text-purple-400" />
-                    <span className="font-medium">{editionCount > 1 ? `${editionCount} Limited Editions` : 'Limited Edition'}</span>
+                    <span className="font-medium">{editionCount > 1 ? `${editionCount} Photo Copies` : 'Photo Copy'}</span>
                   </div>
                   <p className="text-xs text-white/70 mt-1">
-                    Share this QR code with everyone in your group to claim their limited edition copies.
+                    Share this QR code with everyone in your group to claim their photo copies.
                   </p>
                 </div>
                 {/* Download QR Code button hidden per request */}
