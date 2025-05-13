@@ -92,7 +92,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       console.error("Mint mutation error:", error);
       toast({
         title: "Creation failed",
-        description: error.message || "Failed to create your digital collectibles. Please try again.",
+        description: error.message || "Failed to create your photo copies. Please try again.",
         variant: "destructive",
       });
       setMintProgress(0);
@@ -122,7 +122,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
   // Handle manual button click to start minting
   const handleStartMinting = () => {
     console.log("HandleStartMinting called");
-    setMintStatus('Creating your digital collectibles...');
+    setMintStatus('Creating your photo copies...');
     setMintProgress(10);
     
     // Start minting process
@@ -136,7 +136,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       console.error("Error starting mint process:", error);
       toast({
         title: "Error",
-        description: "Failed to start the creation process. Please try again.",
+        description: "Failed to start creating your photo copies. Please try again.",
         variant: "destructive",
       });
     }
@@ -174,21 +174,21 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
       } else if (progress <= 50) {
         setMintStatus('Capturing your event memories...');
       } else if (progress <= 70) {
-        setMintStatus('Generating your exclusive collectible...');
+        setMintStatus('Generating your photo copies...');
         
         // Show first collectible as minted if we have at least 1 photo
         if (progress >= progressSteps[0] && photoCount >= 1 && !mintedPhotos.includes(0)) {
           setMintedPhotos(prev => [...prev, 0]);
         }
       } else if (progress <= 90) {
-        setMintStatus('Adding the final touches to your Proof of Vibes...');
+        setMintStatus('Adding the final touches to your photo copies...');
         
         // Show second collectible as minted if we have at least 2 photos
         if (progress >= progressSteps[1] && photoCount >= 2 && !mintedPhotos.includes(1)) {
           setMintedPhotos(prev => [...prev, 1]);
         }
       } else {
-        setMintStatus('Finalizing your event memorabilia...');
+        setMintStatus('Finalizing your photo copies...');
         
         // Show third collectible as minted if we have 3 photos
         if (progress >= progressSteps[2] && photoCount >= 3 && !mintedPhotos.includes(2)) {
@@ -244,15 +244,15 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           <div className="text-center mb-6">
             <div className="inline-block bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text">
               <h2 className="font-heading text-3xl font-bold mb-1">
-                Creating Your Proof of Vibes
+                Creating Your Photo Copies
               </h2>
             </div>
             <p className="text-center mb-2 text-white/70">
-              We're transforming your photos into certified digital memorabilia
+              We're transforming your photos into digital keepsakes
             </p>
             <div className="flex justify-center items-center gap-2 text-sm text-white/50">
               <Award className="h-4 w-4" />
-              <span>Each collectible includes a certificate of authenticity</span>
+              <span>Each photo copy includes a certificate of authenticity</span>
             </div>
           </div>
           
@@ -277,7 +277,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
                 
                 <img 
                   src={photo} 
-                  alt={`Digital Collectible ${index + 1}`} 
+                  alt={`Photo Copy ${index + 1}`} 
                   className="w-full h-full object-cover" 
                 />
                 
