@@ -71,18 +71,42 @@ export default function EditionSelection({ onConfirm, onCancel, isOpen }: Editio
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="editionCount">Number of Photo Copies</Label>
-            <Input 
-              id="editionCount"
-              type="number" 
-              min={1}
-              max={20}
-              value={editionCount} 
-              onChange={handleEditionChange}
-              className={cn(error && "border-red-500")}
-            />
-            {error && <p className="text-xs text-red-500">{error}</p>}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="editionCount">Number of Photo Copies</Label>
+              <div className="grid grid-cols-3 gap-2 mt-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                  <Button
+                    key={num}
+                    type="button"
+                    variant={editionCount === num ? "default" : "outline"}
+                    onClick={() => {
+                      setError('');
+                      setEditionCount(num);
+                    }}
+                    className={cn(
+                      "h-12 text-lg font-bold",
+                      editionCount === num && "bg-gradient-to-r from-purple-600 to-indigo-600"
+                    )}
+                  >
+                    {num}
+                  </Button>
+                ))}
+                <div className="col-span-3 mt-1">
+                  <Input 
+                    id="editionCount"
+                    type="number" 
+                    min={1}
+                    max={20}
+                    value={editionCount > 9 ? editionCount : ''} 
+                    onChange={handleEditionChange}
+                    placeholder="Custom (10-20)"
+                    className={cn("text-center", error && "border-red-500")}
+                  />
+                </div>
+              </div>
+            </div>
+            {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
             <p className="text-xs text-muted-foreground">
               This creates multiple numbered copies (like "Copy 2 of 5") of your photo.
             </p>

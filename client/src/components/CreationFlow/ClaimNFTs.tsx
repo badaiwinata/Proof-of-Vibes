@@ -56,7 +56,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
         
         toast({
           title: "Success!",
-          description: `Your Proof of Vibes ${editionCount > 1 ? 'editions have' : 'edition has'} been sent to ${email}.`,
+          description: `Your photo ${editionCount > 1 ? 'copies have' : 'copy has'} been sent to ${email}.`,
         });
       } else {
         toast({
