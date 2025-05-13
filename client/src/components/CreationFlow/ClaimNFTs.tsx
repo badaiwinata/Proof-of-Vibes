@@ -290,7 +290,7 @@ export default function ClaimNFTs({ onFinish }: ClaimNFTsProps) {
           <div className="mt-8 mb-6">
             <h4 className="font-heading text-lg font-medium mb-3 flex items-center gap-2">
               <Award className="h-5 w-5 text-accent" />
-              Your Limited Edition Collection
+              Your Photo Collection
             </h4>
             <div className="flex overflow-x-auto pb-4 space-x-3">
               {mintedNfts.map((nft, index) => (

@@ -64,7 +64,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         
         // Force set progress to 100% to ensure UI shows completion
         setMintProgress(100);
-        setMintStatus('Your Proof of Vibes collectibles are ready!');
+        setMintStatus('Your photo copies are ready!');
         
         // Make sure all photos are marked as minted
         const indices = Array.from({ length: selectedPhotos.length }, (_, i) => i);
@@ -77,7 +77,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
         // Show success toast
         toast({
           title: "Success!",
-          description: "Your digital collectibles have been created successfully.",
+          description: "Your photo copies have been created successfully.",
         });
       } else {
         console.error("Mint API returned empty or invalid data:", data);
@@ -205,7 +205,7 @@ export default function MintNFTs({ onNext, onBack }: MintNFTsProps) {
           if (mintProgress < 100) {
             console.log("Forcing completion after timeout");
             setMintProgress(100);
-            setMintStatus('Your Proof of Vibes collectibles are ready!');
+            setMintStatus('Your photo copies are ready!');
             
             // Make sure all photos are marked as minted
             const allIndices = Array.from({ length: photoCount }, (_, i) => i);
