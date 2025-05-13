@@ -79,10 +79,10 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Award className="h-5 w-5 text-purple-400" />
-            Digital Collectible
+            Photo Copy
           </DialogTitle>
           <DialogDescription className="text-white/70">
-            Your exclusive event memorabilia with certificate of authenticity
+            Your exclusive event photo with certificate of authenticity
           </DialogDescription>
         </DialogHeader>
         
@@ -94,9 +94,16 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
         <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
           <img 
             src={nft.imageUrl} 
-            alt="Digital Collectible" 
+            alt="Photo Copy" 
             className="w-full h-full object-cover" 
           />
+          
+          {/* Edition/Copy Number Badge */}
+          <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
+            {nft.editionNumber && nft.editionCount 
+              ? `COPY ${nft.editionNumber}/${nft.editionCount}` 
+              : 'COPY'}
+          </div>
           
           {/* Rarity Badge */}
           <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
