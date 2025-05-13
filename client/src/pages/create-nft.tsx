@@ -105,6 +105,7 @@ export default function CreateNFT() {
             <ChooseTemplate 
               onNext={() => {
                 // Show edition selection popup instead of going directly to mint
+                console.log("ChooseTemplate onNext called, showing edition selection dialog");
                 setShowEditionSelection(true);
               }} 
               onBack={() => handleBack('select-photos')} 
