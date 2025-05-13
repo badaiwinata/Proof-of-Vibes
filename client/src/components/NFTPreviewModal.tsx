@@ -39,14 +39,14 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
   const transactionHash = nft.mintAddress || `${certificateId.replace('POV-', '')}-${Math.random().toString(16).slice(2, 10)}`;
   
   // Set rarity level based on template and vibes
-  const rarityMap = {
+  const rarityMap: Record<string, 'Common' | 'Uncommon' | 'Rare' | 'Epic'> = {
     'classic': 'Common',
     'neon': 'Rare',
     'retro': 'Uncommon',
     'minimal': 'Epic'
   };
   
-  const rarity = rarityMap[nft.template as keyof typeof rarityMap] || 'Rare';
+  const rarity = nft.template && rarityMap[nft.template] ? rarityMap[nft.template] : 'Rare';
   
   // Generate collection name
   const collectionName = nft.eventName || "Proof of Vibes Collection";
@@ -55,7 +55,7 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
   const creatorName = "Proof of Vibes";
   
   // Floor price based on rarity
-  const floorPriceMap = {
+  const floorPriceMap: Record<'Common' | 'Uncommon' | 'Rare' | 'Epic', string> = {
     'Common': '0.01 SOL',
     'Uncommon': '0.05 SOL',
     'Rare': '0.15 SOL',
@@ -102,11 +102,11 @@ export default function NFTPreviewModal({ nft, isOpen, onClose }: NFTPreviewModa
           <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
             {nft.editionNumber && nft.editionCount 
               ? `COPY ${nft.editionNumber}/${nft.editionCount}` 
-              : 'COPY'}
+              : 'PHOTO COPY'}
           </div>
           
           {/* Rarity Badge */}
-          <div className="absolute top-0 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
+          <div className="absolute top-6 right-0 z-10 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs px-2 py-0.5 rounded-bl-md font-medium">
             {rarity.toUpperCase()}
           </div>
           
