@@ -37,6 +37,16 @@ export default function NFTCard({ nft }: NFTCardProps) {
   
   const floorPrice = floorPriceMap[rarity as keyof typeof floorPriceMap];
   
+  // Gradient styles based on the template
+  const templateGradients = {
+    'classic': 'from-primary to-secondary',
+    'neon': 'from-pink-500 to-blue-500',
+    'retro': 'from-amber-500 to-red-600',
+    'minimal': 'from-slate-700 to-slate-900'
+  };
+  
+  const gradientClass = templateGradients[nft.template as keyof typeof templateGradients] || 'from-primary to-secondary';
+  
   // Certificate ID or generate a placeholder
   const certificateId = nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
   
