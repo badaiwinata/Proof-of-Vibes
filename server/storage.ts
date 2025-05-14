@@ -25,6 +25,9 @@ export interface IStorage {
   createPhoto(photo: InsertPhoto): Promise<Photo>;
   deletePhoto(id: number): Promise<boolean>;
   deletePhotosBySessionId(sessionId: string): Promise<boolean>;
+  
+  // Admin functions
+  resetUserGeneratedData(): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -174,6 +177,33 @@ export class MemStorage implements IStorage {
       this.photos.delete(photo.id);
     });
     return true;
+  }
+  
+  // Reset all user-generated data but keep sample data
+  async resetUserGeneratedData(): Promise<boolean> {
+    try {
+      // Store initial sample NFT count to know which are demo NFTs
+      const sampleNftCount = 9; // We have 9 sample NFTs
+      
+      // Delete user-generated NFTs (keep only the sample ones)
+      const userNfts = [...this.nfts.values()].filter(nft => nft.id > sampleNftCount);
+      for (const nft of userNfts) {
+        this.nfts.delete(nft.id);
+      }
+      
+      // Reset the NFT ID counter to avoid ID conflicts
+      this.nftIdCounter = sampleNftCount + 1;
+      
+      // Clear all session photos
+      this.photos.clear();
+      this.photoIdCounter = 1;
+      
+      console.log("Reset complete: all user-generated data has been cleared");
+      return true;
+    } catch (error) {
+      console.error("Error resetting user data:", error);
+      return false;
+    }
   }
 
   // Seed some sample NFTs for gallery view
