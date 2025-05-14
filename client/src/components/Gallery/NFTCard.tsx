@@ -39,13 +39,23 @@ export default function NFTCard({ nft }: NFTCardProps) {
   
   // Gradient styles based on the template
   const templateGradients = {
-    'classic': 'from-primary to-secondary',
-    'neon': 'from-pink-500 to-blue-500',
-    'retro': 'from-amber-500 to-red-600',
-    'minimal': 'from-slate-700 to-slate-900'
+    'classic': 'from-primary/90 via-primary/70',
+    'neon': 'from-pink-500/90 via-blue-500/70',
+    'retro': 'from-amber-500/90 via-red-600/70',
+    'minimal': 'from-slate-700/90 via-slate-900/70'
   };
   
-  const gradientClass = templateGradients[nft.template as keyof typeof templateGradients] || 'from-primary to-secondary';
+  const gradientClass = templateGradients[nft.template as keyof typeof templateGradients] || 'from-primary/90 via-primary/70';
+  
+  // Border styles based on template
+  const templateBorders = {
+    'classic': 'border-primary/30',
+    'neon': 'border-pink-500/30',
+    'retro': 'border-amber-500/30',
+    'minimal': 'border-slate-700/30'
+  };
+  
+  const borderClass = templateBorders[nft.template as keyof typeof templateBorders] || 'border-primary/30';
   
   // Certificate ID or generate a placeholder
   const certificateId = nft.certificateId || `POV-${nft.id}-${Date.now().toString().slice(-6)}`;
@@ -57,7 +67,7 @@ export default function NFTCard({ nft }: NFTCardProps) {
 
   return (
     <div 
-      className="nft-card rounded-xl overflow-hidden glassmorphism relative cursor-pointer transform hover:scale-[1.02] transition-all duration-200"
+      className={`nft-card rounded-xl overflow-hidden glassmorphism relative cursor-pointer transform hover:scale-[1.02] transition-all duration-200 border-2 ${borderClass}`}
     >
       {/* Status Banner - Show claimed status */}
       {nft.claimed ? (
@@ -106,10 +116,10 @@ export default function NFTCard({ nft }: NFTCardProps) {
           <span className="font-medium">{nft.eventName || "Proof of Vibes"}</span>
         </div>
         
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-[#1A1A2E]/90 to-transparent">
+        <div className={`absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t ${gradientClass} to-transparent`}>
           <div className="flex flex-wrap gap-1">
             {nft.vibes.map((vibe, index) => (
-              <span key={index} className="vibe-tag text-xs px-2 py-1 rounded-full">#{vibe}</span>
+              <span key={index} className="vibe-tag text-xs px-2 py-1 rounded-full backdrop-blur-sm">#{vibe}</span>
             ))}
           </div>
         </div>
@@ -153,7 +163,12 @@ export default function NFTCard({ nft }: NFTCardProps) {
         )}
         
         <div className="flex justify-between items-center mt-3">
-          <Badge variant="outline" className="text-[10px] h-5 border-purple-500/30 text-purple-300">
+          <Badge variant="outline" className={`text-[10px] h-5 ${borderClass} ${
+            nft.template === 'classic' ? 'text-primary' : 
+            nft.template === 'neon' ? 'text-pink-500' : 
+            nft.template === 'retro' ? 'text-amber-500' : 
+            nft.template === 'minimal' ? 'text-slate-500' : 'text-primary'
+          }`}>
             <Diamond className="h-2.5 w-2.5 mr-1" />
             {rarity}
           </Badge>

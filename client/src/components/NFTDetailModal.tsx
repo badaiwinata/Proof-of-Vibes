@@ -68,6 +68,26 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
   
   const rarity = rarityMap[nft.template] || 'Rare';
   
+  // Gradient styles based on the template
+  const templateGradients: Record<string, string> = {
+    'classic': 'from-primary/90 via-primary/70',
+    'neon': 'from-pink-500/90 via-blue-500/70',
+    'retro': 'from-amber-500/90 via-red-600/70',
+    'minimal': 'from-slate-700/90 via-slate-900/70'
+  };
+  
+  const gradientClass = templateGradients[nft.template] || 'from-primary/90 via-primary/70';
+  
+  // Border styles based on template
+  const templateBorders: Record<string, string> = {
+    'classic': 'border-primary/30',
+    'neon': 'border-pink-500/30',
+    'retro': 'border-amber-500/30',
+    'minimal': 'border-slate-700/30'
+  };
+  
+  const borderClass = templateBorders[nft.template] || 'border-primary/30';
+  
   // Collection ID from the enhanced NFT object
   const collectionId = nft.collectionId || 'uncategorized';
   
@@ -159,7 +179,7 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Certificate Image */}
               <div>
-                <div className="relative aspect-[3/4] rounded-xl overflow-hidden mb-4">
+                <div className={`relative aspect-[3/4] rounded-xl overflow-hidden mb-4 border-2 ${borderClass}`}>
                   {/* Certificate Banner */}
                   <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white text-center py-1 text-xs font-medium">
                     CERTIFICATE OF AUTHENTICITY
