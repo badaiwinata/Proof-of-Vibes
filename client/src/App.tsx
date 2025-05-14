@@ -21,6 +21,7 @@ function Router() {
         <Route path="/" component={Gallery} />
         <Route path="/create" component={CreateNFT} />
         <Route path="/nft/:id" component={NFTDetailPage} />
+        <Route path="/admin" component={AdminPage} />
         <Route component={NotFound} />
       </Switch>
     </CreationProvider>
