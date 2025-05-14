@@ -215,13 +215,13 @@ export default function NFTDetailModal({ nft, isOpen, onClose, onViewCollection 
                     <span className="font-medium">{nft.eventName || "Proof of Vibes"}</span>
                   </div>
                   
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#1A1A2E] to-transparent">
+                  <div className={`absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t ${gradientClass} to-transparent`}>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {nft.vibes.map((vibe, i) => (
-                        <span key={i} className="bg-white/20 text-xs px-2 py-1 rounded-full">#{vibe}</span>
+                        <span key={i} className="bg-white/20 backdrop-blur-sm text-xs px-2 py-1 rounded-full">#{vibe}</span>
                       ))}
                     </div>
-                    <p className="text-sm font-medium">"{nft.message}"</p>
+                    <p className="text-sm font-medium backdrop-blur-sm inline-block px-2 py-1 rounded bg-black/20">"{nft.message}"</p>
                   </div>
                 </div>
               </div>
