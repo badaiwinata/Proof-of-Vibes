@@ -439,6 +439,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin API - Data Reset Endpoint
+  app.post("/api/admin/reset", async (req: Request, res: Response) => {
+    try {
+      // Simple admin token check (use environment variables in production)
+      const { adminToken } = req.body;
+      const validToken = process.env.ADMIN_TOKEN || "proof-of-vibes-admin"; // Default token for demo
+      
+      if (adminToken !== validToken) {
+        return res.status(401).json({ 
+          message: "Unauthorized - Invalid admin token",
+          success: false 
+        });
+      }
+      
+      // Reset all user-generated data
+      const success = await storage.resetUserGeneratedData();
+      
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: "All user-generated data has been reset successfully",
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to reset data" 
+        });
+      }
+    } catch (error) {
+      console.error("Error during data reset:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "An error occurred during data reset" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

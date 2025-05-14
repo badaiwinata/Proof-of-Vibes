@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Gallery from "@/pages/gallery";
 import CreateNFT from "@/pages/create-nft";
 import NFTDetailPage from "@/pages/nft-detail";
+import AdminPage from "@/pages/admin";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { ThemeProvider } from "next-themes";
