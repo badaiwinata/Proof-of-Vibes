@@ -8,6 +8,7 @@ A Web3 platform on Solana that allows event attendees to use a photobooth to tak
 ## 📸 Demo
 
 Check Live Project : https://proof-of-vibes.replit.app/
+
 [Home Screenshot](https://github.com/badaiwinata/Proof-of-Vibes/blob/9820aace212d5824d995eb4e8937f0334b084eb5/attached_assets/home%20-%20pov.png) | [NFT Screenshot](https://github.com/badaiwinata/Proof-of-Vibes/blob/787d04033a340fd96c4c3dddc3a1e142364541b4/attached_assets/nft%20detail%20-%20pov.png)
 
 
