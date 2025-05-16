@@ -134,3 +134,6 @@ Acknowledgements
 - shadcn/ui - UI components
 - Tailwind CSS - Styling
 - Solana Web3.js - Blockchain integration
+
+## Contributors
+@0xwnrft https://x.com/0xwnrft
