@@ -56,43 +56,52 @@ The platform handles all blockchain interactions invisibly in the background, ma
 - Data management for event organizers
 - Reset functionality for demo purposes
 - Protected admin route with token authentication
+
 ## Setup and Installation
 ### Prerequisites
 - Node.js (v16 or higher)
 - npm or yarn
+
 ### Installation Steps
 1. Clone the repository:
-```bash
+```
 git clone https://github.com/yourusername/proof-of-vibes.git
 cd proof-of-vibes
-Install dependencies:
-npm install
-Start the development server:
-npm run dev
-Open your browser and navigate to:
-http://localhost:5000
-Deployment
+```
+
+2. Install dependencies:
+```npm install```
+
+3. Start the development server:
+```npm run dev```
+
+4. Open your browser and navigate to:
+```http://localhost:5000```
+
+## Deployment
 This project is configured for easy deployment on Replit:
+1. Click the "Deploy" button in Replit
+2. Configure your subdomain and environment settings
+3. Click "Deploy" to build and publish your application
 
-Click the "Deploy" button in Replit
-Configure your subdomain and environment settings
-Click "Deploy" to build and publish your application
-Usage
-User Flow
-Home Gallery: Browse existing NFTs or start creating your own
-Take Photos: Use the camera to capture selfies or upload photos
-Select Photos: Choose your favorite photos to mint
-Choose Template: Select a visual style and add tags/messages
-Set Editions: Specify how many copies of each NFT to create
-Create Collectible: Mint the NFTs on the blockchain
-Claim: Receive a claim link or QR code to access your digital collectible
-Admin Features
+### Usage
+## User Flow
+1. Home Gallery: Browse existing NFTs or start creating your own
+2. Take Photos: Use the camera to capture selfies or upload photos
+3. Select Photos: Choose your favorite photos to mint
+4. Choose Template: Select a visual style and add tags/messages
+5. Set Editions: Specify how many copies of each NFT to create
+6. Create Collectible: Mint the NFTs on the blockchain
+7. Claim: Receive a claim link or QR code to access your digital collectible
+
+### Admin Features
 Access the admin panel at /admin to:
+- Reset user-generated data for demo purposes
+- View system statistics
+- Default admin token: proof-of-vibes-admin
 
-Reset user-generated data for demo purposes
-View system statistics
-Default admin token: proof-of-vibes-admin
-Project Structure
+### Project Structure
+```
 /client             # Frontend React application
   /src
     /components     # Reusable UI components
@@ -105,19 +114,23 @@ Project Structure
   /storage.ts       # Data storage implementation
 /shared             # Shared code between client and server
   /schema.ts        # Database schema definitions
-Configuration
-Environment variables can be set in a .env file:
+```
 
+## Configuration
+Environment variables can be set in a .env file:
+```
 # API Keys
 ADMIN_TOKEN=your-secure-admin-token
 # Blockchain Configuration
 SOLANA_NETWORK=devnet
 # Server Configuration
 PORT=5000
-License
+```
+
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
 Acknowledgements
-shadcn/ui - UI components
-Tailwind CSS - Styling
-Solana Web3.js - Blockchain integration
+- shadcn/ui - UI components
+- Tailwind CSS - Styling
+- Solana Web3.js - Blockchain integration
